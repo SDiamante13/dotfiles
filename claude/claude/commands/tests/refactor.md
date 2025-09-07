@@ -1,0 +1,4 @@
+- tests should cover a single behavior
+- tests should not have overlapping test coverage, but just enough to have a safety net for refactoring
+- tests should never test private (only used in current class) methods
+- tests should never test getters and trivial code that isn't core to the classes' behavior
