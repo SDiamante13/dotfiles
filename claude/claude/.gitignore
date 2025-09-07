@@ -1,0 +1,5 @@
+*.idea
+projects
+shell-snapshots
+statsig
+todos
