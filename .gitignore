@@ -1,5 +1,7 @@
 # Claude-specific files to ignore
 
+*.claude
+
 # Large JSON data files (these appear to be state/cache files)
 claude/claude.json
 claude/claude.json.backup
