@@ -27,3 +27,4 @@ claude/claude/todos/
 # Backup files
 *.old
 *.backup
+.idea/
