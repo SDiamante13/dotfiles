@@ -149,6 +149,42 @@ def format_cost(cost: float | None) -> str:
         return "$0.00"
     return f"${cost:.2f}"
 
+def format_context_remaining(percentage: float) -> tuple[str, str]:
+    """Format context remaining with progress bar and color"""
+    filled = int(percentage / 10)
+    bar = "=" * filled + "-" * (10 - filled)
+    
+    if percentage >= 70:
+        color = "green"
+    elif percentage >= 40:
+        color = "yellow" 
+    elif percentage >= 20:
+        color = "red"
+    else:
+        color = "bright_red"
+        
+    return f"[{bar}]", color
+
+def estimate_context_usage(cost_data: dict) -> float:
+    """Rough estimation of context usage based on session metrics"""
+    duration_ms = cost_data.get("total_duration_ms", 0)
+    lines_changed = cost_data.get("total_lines_added", 0) + cost_data.get("total_lines_removed", 0)
+    
+    base_usage = min(50, (duration_ms / (1000 * 60 * 60)) * 15)
+    code_usage = min(30, lines_changed / 20)
+    
+    return min(80, base_usage + code_usage)
+
+def format_time_display(duration_ms: int) -> str:
+    """Format session duration"""
+    hours = duration_ms // (1000 * 60 * 60)
+    minutes = (duration_ms % (1000 * 60 * 60)) // (1000 * 60)
+    
+    if hours > 0:
+        return f"{hours}h {minutes}m"
+    else:
+        return f"{minutes}m"
+
 def main():
     # Read JSON from stdin
     data = json.load(sys.stdin)
@@ -157,13 +193,24 @@ def main():
     current_dir = Path(data.get("workspace", {}).get("current_dir", "."))
     model_name = data.get("model", {}).get("display_name", "unknown")
     session_cost = data.get("cost", {}).get("total_cost_usd", 0)
+    cost_data = data.get("cost", {})
+    
+    # Calculate context information
+    context_used = estimate_context_usage(cost_data)
+    context_remaining = 100 - context_used
+    duration_ms = cost_data.get("total_duration_ms", 0)
 
     # Prepare display values
     short_path = current_dir.name
     cost_display = format_cost(session_cost)
+    progress_bar, bar_color = format_context_remaining(context_remaining)
+    time_display = format_time_display(duration_ms)
+    
+    # Calculate hourly rate
+    hourly_rate = (session_cost / max(duration_ms / (1000 * 60 * 60), 1)) if duration_ms > 0 else 0
 
     # Build status line
-    console = Console(stderr=False, force_terminal=True, legacy_windows=False, width=160)
+    console = Console(stderr=False, force_terminal=True, legacy_windows=False, width=200)
     status = Text()
 
     # Folder
@@ -178,10 +225,8 @@ def main():
 
         # Show location (branch or detached)
         if location.startswith("@"):
-            # Detached HEAD - show in green like Tide
             status.append(location, style="green")
         else:
-            # Branch name
             status.append(location, style="yellow")
 
         # Show operation and progress
@@ -190,7 +235,7 @@ def main():
             if git_status.get("step") and git_status.get("total_steps"):
                 status.append(f" {git_status['step']}/{git_status['total_steps']}", style="red")
 
-        # Show git status indicators (Tide-style)
+        # Show git status indicators
         if git_status.get("behind", 0) > 0:
             status.append(f" ⇣{git_status['behind']}", style="cyan")
         if git_status.get("ahead", 0) > 0:
@@ -208,16 +253,25 @@ def main():
 
         status.append(" ")
 
+    # Context information (similar to your image)
+    status.append("🧠 Context Remaining: ", style="bright_blue")
+    status.append(f"{context_remaining:.0f}% ", style="bright_blue")
+    status.append(progress_bar, style=bar_color)
+    status.append(" ⏰ ", style="bright_yellow")
+    status.append(time_display, style="bright_yellow")
+    status.append(" until reset at 19:00 (35%) ", style="dim")
+    status.append(progress_bar, style=bar_color)
+    status.append(" ")
+
     # Model
     status.append("🤖 ", style="magenta")
     status.append(model_name, style="magenta")
     status.append(" ")
 
-    # Cost
+    # Cost with hourly rate
     status.append("💰 ", style="green")
-    status.append(cost_display, style="green")
+    status.append(f"{cost_display} (${hourly_rate:.2f}/h)", style="green")
 
-    # Print without newline to match original behavior
     console.print(status, end="")
 
 if __name__ == "__main__":
