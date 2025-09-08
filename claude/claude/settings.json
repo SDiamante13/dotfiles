@@ -36,6 +36,7 @@
     ],
     "deny": []
   },
+  "model": "sonnet[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -83,7 +84,6 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.py",
-    "maxLength": 160
+    "command": "~/.claude/statusline.py"
   }
 }
