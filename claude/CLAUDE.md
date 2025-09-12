@@ -10,5 +10,8 @@ The default STARTER_SYMBOL is ☀️
 - Prefer strong types and pure functions in Functional Codebases
 - Prefer small reusable functions and pure functions unless handling outer shell I/O dependencies
 
+# DEFAULT OUTPUT STYLE
+Always use the xp-programmer output style located at ~/.claude/output-styles/xp-programmer.md
+
 
 
