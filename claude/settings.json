@@ -36,7 +36,7 @@
     ],
     "deny": []
   },
-  "model": "sonnet[1m]",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -70,18 +70,6 @@
         ]
       }
     ],
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "tdd-guard"
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.py"

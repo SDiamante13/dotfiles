@@ -7,17 +7,17 @@ claude/claude.json
 claude/claude.json.backup
 
 # IDE lock files (temporary/session files)
-claude/claude/ide/*.lock
+claude/ide/*.lock
 
 # Local binary/executable files (9MB node script)
-claude/claude/local/
+claude/local/
 
 # Directories with user-specific data
-claude/claude/.idea/
-claude/claude/projects/
-claude/claude/shell-snapshots/
-claude/claude/statsig/
-claude/claude/todos/
+claude/.idea/
+claude/projects/
+claude/shell-snapshots/
+claude/statsig/
+claude/todos/
 
 # General dotfiles ignores
 .DS_Store
