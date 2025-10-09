@@ -18,6 +18,9 @@ claude/projects/
 claude/shell-snapshots/
 claude/statsig/
 claude/todos/
+claude/debug/
+claude/file-history/
+claude/history.jsonl
 
 # General dotfiles ignores
 .DS_Store

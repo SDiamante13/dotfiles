@@ -24,7 +24,7 @@ The report should include:
 
 ## Execution
 
-Launch a Playwright subtask agent to:
+Launch a playwright-mcp subtask agent to:
 - Navigate through the application
 - Test all happy path scenarios
 - Capture screenshots of issues
