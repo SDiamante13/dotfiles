@@ -37,7 +37,49 @@ STARTER_CHARACTER = 🔴 for red test, 🌱 for green, 🌀 when refactoring, al
 
 ## Test Design:
 
-- Test behavior, not implementation
+**CRITICAL: Test behaviors, not implementation details**
+- Focus on WHAT the code does, not HOW it does it
+- Tests should survive refactoring of internal implementation
+- Avoid testing private methods or internal state
 - Use fakes and/or mock servers over mocks
 - Walking skeleton approach
 - Use fluent assertion libraries where applicable
+
+## ZOMBIES Approach (Test Case Order):
+
+Follow this sequence when writing test cases:
+
+**Z - Zero**: Start with the simplest cases
+- Test initial state and zero conditions
+- Empty collections, null/undefined, zero values
+- Example: `[TEST] Empty list returns zero sum`
+
+**O - One**: Test with a single element or basic interaction
+- Transition from zero to one
+- Single item scenarios
+- Example: `[TEST] List with one number returns that number as sum`
+
+**M - Many (or More complex)**: Generalize the design
+- Multiple items or interactions
+- More complex scenarios
+- Example: `[TEST] List with multiple numbers returns correct sum`
+
+**B - Boundary Behaviors**: Test edge cases and limits
+- Maximum/minimum values
+- Critical transition points
+- Example: `[TEST] Sum does not overflow with large numbers`
+
+**I - Interface definition**: Design clean interfaces
+- How the object will be used
+- API surface and contracts
+- Example: `[TEST] Calculator can be used with fluent API`
+
+**E - Exercise Exceptional behavior**: Test error conditions
+- Invalid inputs
+- Failure modes
+- Example: `[TEST] Division by zero throws appropriate error`
+
+**S - Simple Scenarios, Simple Solutions**: Keep it simple
+- Start with simplest implementation that could work
+- Add complexity incrementally
+- Refactor when patterns emerge

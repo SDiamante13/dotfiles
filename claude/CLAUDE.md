@@ -3,6 +3,8 @@
 ALWAYS start your answers with a STARTER_SYMBOL
 The default STARTER_SYMBOL is ☀️
 
+- Be proactive and flag issues before they become a problem
+- Be concise and only go into details when asked
 - Write readable and expressive code that does not need redundant comments or reasoning why something changed
 - Follow Single Responsibility Principle 
 - Methods should be no longer than 25 lines
