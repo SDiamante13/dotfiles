@@ -1,26 +1,49 @@
-Refactor $ARGUMENTS by extracting small methods from large code blocks.
+---
+description: Extract small, focused methods from large code blocks
+---
 
-Focus on:
+# Extract Methods Refactor
 
-1. Identify large blocks of code that perform distinct operations
-2. Extract these blocks into well-named methods with clear intent
-3. Name methods based on behavior not implementation
-4. Ensure each method has a single responsibility
-5. Pass necessary parameters rather than sharing state
-6. Update all references to use the new methods
-7. Follow language-specific method extraction patterns
-8. Preserve the original functionality
+Ask the user for the file or directory to refactor. Support multiple files if a directory is provided.
 
-## GUIDELINES
+## Process
 
-- Extract methods pragmatically to improve code organization
-- Create behavior-focused method names that reveal intent
-- Refactor for readability and maintainability
-- Apply proper access modifiers (private for helper methods)
-- Preserve the original behavior exactly
-- If the tests don't pass after refactor then revert
+Work through these steps in order, making a separate commit for each extraction:
 
-Examples of good method extractions:
-- Extract validation logic into 'validateUserCredentials()'
-- Extract data processing into 'transformRawStockData()'
-- Extract repetitive UI setup into 'configureDataTable()'
+1. **Extract simple helper methods**
+   - Calculations, formatting, simple logic
+   - Single responsibility, behavior-focused names
+   - Pass necessary parameters rather than sharing state
+
+2. **Extract complex logic blocks**
+   - Validation, transformations, data processing
+   - Well-named methods that reveal intent
+   - Apply proper access modifiers (private for helpers)
+
+3. **Extract control flow sections**
+   - Only when it improves readability
+   - Avoid over-extraction that hurts clarity
+
+After EACH extraction:
+- Run tests automatically
+- If tests fail, revert the change immediately
+- If tests pass and using IDE refactoring tool, commit: `. r <description>`
+- If tests pass but manual refactoring, commit: `^ r <description>`
+
+## Guidelines
+
+- Extract pragmatically to improve code organization
+- Name methods based on behavior not implementation
+- Ensure each method ≤ 25 lines
+- Preserve original functionality exactly
+
+## Output
+
+- If no methods to extract, report "No methods to extract"
+- Otherwise provide brief summary (e.g., "Extracted 5 methods from 3 large blocks")
+
+## Commit Format
+
+Use Arlo's Commit Notation (ACN):
+- `. r extract validateUserCredentials method` - IDE refactoring
+- `^ r extract transformRawStockData method` - Manual refactoring

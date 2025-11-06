@@ -1,16 +1,35 @@
 ---
 description: Refactor a class by removing dead code, useless comments, unused variables, and imports
-usage: /refactor declutter <className>
 ---
 
-I'd like you to declutter the $ARGUMENTS class by:
-1. Removing any unused imports
-2. Removing unused variables and methods
-3. Removing redundant or unnecessary comments
-4. Fixing any inconsistent formatting
+# Declutter Refactor
 
-## GUIDELINES
+Ask the user for the file or directory to refactor. Support multiple files if a directory is provided.
 
-- If the tests don't pass after refactor then revert
+## Process
 
-Please only make these types of changes and explain what was removed or simplified.
+Work through these steps in order, making a separate commit for each step that finds issues:
+
+1. Remove unused imports
+2. Remove unused variables
+3. Remove unused methods
+4. Remove redundant/unnecessary comments
+5. Fix inconsistent formatting
+
+After EACH step:
+- Run tests automatically
+- If tests fail, revert the change immediately
+- If tests pass and changes were made, commit using Arlo's Commit Notation: `. r <brief description>`
+- If no issues found in that category, skip silently to next step
+
+## Output
+
+Provide a brief summary at the end listing what was removed (e.g., "Removed 3 unused imports, 2 unused methods").
+
+## Commit Format
+
+Use Arlo's Commit Notation (ACN):
+- Format: `. r <description>`
+- Example: `. r remove unused imports`
+- The `.` indicates "proven safe" (tests passed)
+- The `r` indicates refactoring

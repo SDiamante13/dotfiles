@@ -1,1 +1,0 @@
-All of these commands are from https://github.com/brennercruvinel/CCPlugins
