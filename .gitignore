@@ -22,6 +22,7 @@ claude/plans/
 claude/debug/
 claude/file-history/
 claude/history.jsonl
+*installed_plugins*
 
 # General dotfiles ignores
 .DS_Store
