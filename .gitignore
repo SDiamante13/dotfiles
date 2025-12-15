@@ -22,7 +22,9 @@ claude/plans/
 claude/debug/
 claude/file-history/
 claude/history.jsonl
-*installed_plugins*
+claude/plugins/installed_plugins.json
+claude/plugins/cache/
+claude/stats-cache.json
 
 # General dotfiles ignores
 .DS_Store
