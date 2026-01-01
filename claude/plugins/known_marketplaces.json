@@ -5,6 +5,22 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-06T03:29:28.949Z"
+    "lastUpdated": "2025-12-26T17:13:07.283Z"
+  },
+  "superego": {
+    "source": {
+      "source": "github",
+      "repo": "cloud-atlas-ai/superego"
+    },
+    "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/superego",
+    "lastUpdated": "2025-12-30T22:17:20.879Z"
+  },
+  "claude-craftkit": {
+    "source": {
+      "source": "github",
+      "repo": "marcioaltoe/claude-craftkit"
+    },
+    "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/claude-craftkit",
+    "lastUpdated": "2025-12-30T17:17:11.404Z"
   }
 }
