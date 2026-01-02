@@ -5,7 +5,19 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/anthropic-agent-skills",
+<<<<<<< Updated upstream
     "lastUpdated": "2025-12-26T17:13:07.283Z"
+=======
+    "lastUpdated": "2025-12-06T03:29:28.949Z"
+  },
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2025-12-31T03:57:47.100Z"
+>>>>>>> Stashed changes
   },
   "superego": {
     "source": {
@@ -13,6 +25,7 @@
       "repo": "cloud-atlas-ai/superego"
     },
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/superego",
+<<<<<<< Updated upstream
     "lastUpdated": "2026-01-01T22:56:20.383Z"
   },
   "claude-craftkit": {
@@ -22,5 +35,8 @@
     },
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/claude-craftkit",
     "lastUpdated": "2026-01-01T22:56:21.394Z"
+=======
+    "lastUpdated": "2025-12-31T02:52:38.409Z"
+>>>>>>> Stashed changes
   }
 }

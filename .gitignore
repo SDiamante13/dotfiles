@@ -25,6 +25,7 @@ claude/history.jsonl
 claude/plugins/installed_plugins.json
 claude/plugins/cache/
 claude/stats-cache.json
+claude/plugins/marketplaces/superego/
 
 # General dotfiles ignores
 .DS_Store
