@@ -15,20 +15,12 @@
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/claude-plugins-official",
     "lastUpdated": "2025-12-31T03:57:47.100Z"
   },
-  "superego": {
-    "source": {
-      "source": "github",
-      "repo": "cloud-atlas-ai/superego"
-    },
-    "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/superego",
-    "lastUpdated": "2026-01-02T06:10:08.848Z"
-  },
   "claude-craftkit": {
     "source": {
       "source": "github",
       "repo": "marcioaltoe/claude-craftkit"
     },
     "installLocation": "/Users/stevendiamante/.claude/plugins/marketplaces/claude-craftkit",
-    "lastUpdated": "2026-01-02T06:10:46.271Z"
+    "lastUpdated": "2026-01-01T22:56:21.394Z"
   }
 }

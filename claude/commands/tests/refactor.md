@@ -10,48 +10,64 @@ Ask the user for the test file to refactor. Work on one test file at a time.
 
 Work through these steps in order, making a separate commit for each step that makes changes:
 
-1. **Remove tests for private methods**
-   - Tests should only test public API/behavior
-   - Private methods tested indirectly through public interface
+### 0. **Count cyclomatic complexity (DO FIRST)**
+   - Read the source file being tested
+   - Count decision points: `if`, `else`, `for`, `while`, `case`, `catch`, `&&`, `||`, `?:`
+   - Cyclomatic complexity = 1 + decision points
+   - This is your TARGET test count (approximately)
+   - Report: "Cyclomatic complexity: ~N paths, currently M tests"
+   - If M >> N, tests need consolidation
 
-2. **Remove tests for getters/trivial code**
+### 1. **Identify public API and remove tests for internals**
+   - First: identify what the PUBLIC API is (what external callers use)
+   - Functions exported only to enable testing are NOT public API - make them private
+   - Private methods tested indirectly through public interface
+   - If function A only calls function B internally, test through A, make B private
+   - Example: `buildBotRequest` calls `buildToolsForAgent` → test through `buildBotRequest`, unexport `buildToolsForAgent`
+
+### 2. **Remove tests for getters/trivial code**
    - Only test core behavior, not trivial getters/setters
    - Remove noise that doesn't provide safety net
 
-3. **Consolidate overlapping test coverage**
-   - Merge redundant tests that cover same behavior
-   - Keep just enough coverage for refactoring safety
-   - Don't test same thing multiple ways
+### 3. **Remove implementation detail tests**
+   - Audit/logging callbacks → implementation detail, remove
+   - Caching behavior → implementation detail, remove
+   - Tests that verify Promise.all/parallel execution → testing the language, remove
+   - If behavior matters to users, keep; if it's internal wiring, remove
 
-4. **Split multi-behavior tests**
-   - Each test should cover single behavior
-   - One logical assertion per test (multiple technical assertions OK if testing one behavior)
+### 4. **Consolidate to match cyclomatic complexity**
+   - Target: ~1 test per code path through the function
+   - Merge tests covering same code path with different assertions
+   - Example: "returns response" + "propagates nestedTools" + "propagates suggestedActions" → one test checking all output fields
+   - Example: "MCP returns error" + "MCP throws exception" → one test for error handling
 
-5. **Fix test anti-patterns**
+### 5. **Fix test anti-patterns**
    - Tests testing implementation → refactor to test behavior
    - Conditional logic in tests → split into separate tests
    - Order-dependent tests → make independent
+   - `toHaveBeenCalledWith` on non-void functions → stub return value instead (Query Command Separation: queries are stubs, commands are mocks)
+   - `expect(arr).toHaveLength(n)` followed by element check → remove length check, let element assertion fail directly
    - If test level seems wrong for component, ASK USER with recommendation
 
-6. **Improve test data**
+### 6. **Improve test data**
    - Move large test objects to test data builders
    - Keep only relevant data in each test
    - Keep test data close to test for readability
 
-7. **Improve test names/assertions (ASK USER FIRST)**
+### 7. **Improve test names/assertions (ASK USER FIRST)**
    - Present 3 options for unclear tests:
      1. Rename test to describe behavior
      2. Improve assertion messages
      3. Both
    - Wait for user decision
 
-8. **Refactor test structure**
+### 8. **Refactor test structure**
    - Use AAA pattern (Arrange-Act-Assert)
    - Separate sections with blank lines (NO comments)
    - Extract helper functions for duplicated setup (NOT beforeEach)
    - Use beforeEach only for variables scoped to describe block
 
-9. **Review mocking strategy**
+### 9. **Review mocking strategy**
    - Acceptance tests: Use mock web servers (http), TestContainers (DB)
    - Unit tests: Only mock external dependencies (filesystem, random, time, http, DB)
    - Prefer test doubles over mocking frameworks
@@ -69,15 +85,16 @@ After EACH step:
 - Acceptance level depends on component:
   - Microservices: Event or HTTP level
   - UI: Route-level component rendering
+- **Test count ≈ cyclomatic complexity** (one test per code path)
 
 ## Output
 
 - If no refactoring needed, report "No test refactoring needed"
-- Otherwise provide brief summary (e.g., "Removed 3 private method tests, consolidated 5 overlapping tests, split 2 multi-behavior tests")
+- Otherwise provide brief summary (e.g., "Reduced 15 → 8 tests to match cyclomatic complexity, removed implementation detail tests")
 
 ## Commit Format
 
 Use Arlo's Commit Notation (ACN):
 - `. t remove tests for private methods`
-- `. t consolidate overlapping coverage for user validation`
-- `. t extract test data builder for invoice objects`
+- `. t consolidate tests to match cyclomatic complexity`
+- `. t remove implementation detail tests`
