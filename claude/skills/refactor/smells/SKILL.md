@@ -1,4 +1,7 @@
-# /smells
+---
+name: refactor:smells
+description: /smells
+---
 
 Analyze the provided class for code smells and create a refactoring plan.
 

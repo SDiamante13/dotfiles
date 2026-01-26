@@ -1,4 +1,7 @@
-# /srp
+---
+name: refactor:srp
+description: /srp
+---
 
 Refactor the class provided in $ARGUMENTS to adhere to the Single Responsibility Principle by extracting classes and simplifying the design.
 

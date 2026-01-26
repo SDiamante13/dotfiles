@@ -1,4 +1,5 @@
 ---
+name: refactor:names
 description: Rename variables, methods, and classes to be more descriptive
 ---
 

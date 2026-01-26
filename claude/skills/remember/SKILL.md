@@ -1,4 +1,5 @@
 ---
+name: remember
 description: Compile top 5 insights to add to CLAUDE.md before clearing conversation
 ---
 

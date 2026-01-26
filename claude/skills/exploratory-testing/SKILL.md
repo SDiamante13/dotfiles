@@ -1,4 +1,5 @@
 ---
+name: exploratory-testing
 description: Perform comprehensive exploratory testing on a website using playwright-mcp
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: refactor:dry
 description: Apply DRY principle to remove code duplication
 ---
 
@@ -46,4 +47,3 @@ After EACH extraction:
 Use Arlo's Commit Notation (ACN):
 - `. r extract saveToDatabase method` - IDE refactoring or provably safe
 - `^ r extract validation logic` - Manual refactoring validated by tests
-

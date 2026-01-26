@@ -1,6 +1,9 @@
-# Bash Script Style Process
+---
+name: script
+description: Bash Script Style Process
+---
 
-STARTER_CHARACTER =💻
+STARTER_CHARACTER = 💻
 
 - Use `#!/usr/bin/env bash` as shebang.
 - Always use `set -euo pipefail` for safety and debugging.

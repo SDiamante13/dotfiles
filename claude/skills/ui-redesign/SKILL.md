@@ -1,4 +1,7 @@
-I need you to help me set up and manage a UI redesign experiment with 3 different design approaches. Here's what I want you to do:
+---
+name: ui-redesign
+description: I need you to help me set up and manage a UI redesign experiment with 3 different design approaches.
+---
 
 ## Initial Setup
 

@@ -1,4 +1,7 @@
-# Test-Driven Development (TDD) Guidelines
+---
+name: tdd
+description: Test-Driven Development (TDD) Guidelines
+---
 
 I want you to follow this TDD process when writing code. Confirm that you understand the ask and stand by:
 

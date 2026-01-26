@@ -1,4 +1,7 @@
-# Declarative Functional Programming 
+---
+name: refactor:functional
+description: Declarative Functional Programming
+---
 
 Refactor this Swift codebase to follow functional programming principles:
 
@@ -68,4 +71,3 @@ Callback hell → flatMap chains or async/await
 Stateful iteration → sequence/generator patterns
 
 Maintain Swift idioms while applying functional principles. The goal is readable, maintainable code that leverages Swift's functional capabilities without sacrificing clarity.
-

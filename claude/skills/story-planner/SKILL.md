@@ -1,4 +1,5 @@
 ---
+name: story-planner
 description: Break application into thin vertical slices with clear acceptance criteria
 ---
 

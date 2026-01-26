@@ -1,4 +1,7 @@
-# /value-objects
+---
+name: refactor:value-objects
+description: /value-objects
+---
 
 Analyze the class provided in $ARGUMENTS for instances of primitive obsession and suggest value object extractions.
 

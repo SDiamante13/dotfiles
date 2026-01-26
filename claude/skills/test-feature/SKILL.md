@@ -1,4 +1,5 @@
 ---
+name: test-feature
 description: Test newly added features using Playwright MCP for acceptance testing
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: refactor:methods
 description: Extract small, focused methods from large code blocks
 ---
 

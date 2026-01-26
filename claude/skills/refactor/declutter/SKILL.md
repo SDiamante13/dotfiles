@@ -1,4 +1,5 @@
 ---
+name: refactor:declutter
 description: Refactor a class by removing dead code, useless comments, unused variables, and imports
 ---
 

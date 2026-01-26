@@ -1,4 +1,5 @@
 ---
+name: refactor-tests
 description: Refactor test files to improve clarity and remove anti-patterns
 ---
 
