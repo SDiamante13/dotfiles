@@ -29,6 +29,11 @@ claude/plugins/*
 claude/cache/
 claude/paste-cache/
 claude/image-cache/
+claude/tasks
+
+# Dependencies
+node_modules/
+dist/
 
 # General dotfiles ignores
 .DS_Store

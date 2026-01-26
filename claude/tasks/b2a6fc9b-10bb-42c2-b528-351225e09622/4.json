@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Test PDF export",
+  "description": "Export trip as PDF and verify it generates correctly",
+  "activeForm": "Testing PDF export",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

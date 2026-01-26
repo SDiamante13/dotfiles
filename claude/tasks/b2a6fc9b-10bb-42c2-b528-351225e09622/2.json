@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Test balances view",
+  "description": "Navigate to Balances tab and verify who owes whom calculations",
+  "activeForm": "Testing balances view",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}
