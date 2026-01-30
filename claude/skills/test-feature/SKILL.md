@@ -1,11 +1,11 @@
 ---
 name: test-feature
-description: Test newly added features using Playwright MCP for acceptance testing
+description: Test newly added features using browser automation for acceptance testing
 ---
 
 # Feature Acceptance Testing
 
-Use the Playwright MCP tool through a subtask to perform acceptance testing on recently added features.
+Use the user's configured browser automation tool to perform acceptance testing on recently added features.
 
 ## Testing Process
 
@@ -25,7 +25,7 @@ The report should include:
 
 ## Execution
 
-Launch a playwright-mcp subtask agent to:
+Use the browser automation tool to:
 - Navigate through the application
 - Test all happy path scenarios
 - Capture screenshots of issues

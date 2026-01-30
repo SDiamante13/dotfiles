@@ -1,23 +1,22 @@
 ---
 name: exploratory-testing
-description: Perform comprehensive exploratory testing on a website using playwright-mcp
+description: Perform comprehensive exploratory testing on a website using browser automation
 ---
 
-# Website Exploratory Testing with Playwright-MCP
+# Website Exploratory Testing
 
 ## Goal
 
 ultrathink
 
-You are tasked with performing comprehensive exploratory testing on a website using playwright-mcp.
+You are tasked with performing comprehensive exploratory testing on a website using the user's configured browser automation tool.
 
 Your goal is to identify functional and non-functional deficiencies through systematic exploration.
 
 ## Setup Instructions
 
-1. Launch playwright-mcp server
-2. Create a sub-task for all playwright operations to manage context window efficiently
-3. Use the playwright-mcp tools exclusively through this sub-task approach
+1. Use the available browser automation tool (see CLAUDE.md for configured tool)
+2. Create a sub-task for browser operations to manage context window efficiently
 
 ## Authentication Handling
 
