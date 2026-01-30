@@ -13,6 +13,7 @@ The default STARTER_SYMBOL is ☀️
 - Prefer small reusable functions and pure functions unless handling outer shell I/O dependencies
 - Proactively scan available skills and invoke relevant ones for each task
 - After completing tasks that used skills, suggest improvements to those skills
+- Refactoring approach: "Make the change easy, then make the easy change" (Kent Beck). When adding new integrations, first refactor existing code to be generic (separate commit), then add the feature cleanly.
 
 ## Browser Automation
 
