@@ -11,7 +11,7 @@ Converts existing PRDs to the prd.json format that Ralph uses for autonomous exe
 
 ## The Job
 
-Take a PRD (markdown file or text) and convert it to `prd.json` in your ralph directory.
+Take a PRD (markdown file or text) and convert it to `prd.json` in your ralph directory. Also create a fresh `progress.txt` alongside it.
 
 ---
 
@@ -123,6 +123,22 @@ Frontend stories are NOT complete until visually verified. Ralph will use the de
 4. **All stories**: `passes: false` and empty `notes`
 5. **branchName**: Derive from feature name, kebab-case, prefixed with `ralph/`
 6. **Always add**: "Typecheck passes" to every story's acceptance criteria
+7. **Split multi-concern stories**: If a backlog story covers multiple providers/components that are independently implementable, split into separate stories (one per provider/component)
+
+---
+
+## Progress File
+
+After writing `prd.json`, always create `progress.txt` in the same directory:
+
+```
+# Ralph Progress — [Project Name]
+# Branch: ralph/[feature-name-kebab-case]
+# Started: YYYY-MM-DD
+
+```
+
+This file is required for archiving and is updated by Ralph during execution.
 
 ---
 
@@ -250,8 +266,10 @@ Before writing prd.json, verify:
 
 - [ ] **Previous run archived** (if prd.json exists with different branchName, archive it first)
 - [ ] Each story is completable in one iteration (small enough)
+- [ ] Multi-concern stories split into one story per component/provider
 - [ ] Stories are ordered by dependency (schema to backend to UI)
 - [ ] Every story has "Typecheck passes" as criterion
 - [ ] UI stories have "Verify in browser using dev-browser skill" as criterion
 - [ ] Acceptance criteria are verifiable (not vague)
 - [ ] No story depends on a later story
+- [ ] `progress.txt` created alongside `prd.json`
