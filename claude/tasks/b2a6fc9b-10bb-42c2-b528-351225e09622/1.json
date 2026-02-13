@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Test expense splitting with companions",
-  "description": "Split an existing expense between Alice and Frank, verify split amounts display correctly",
-  "activeForm": "Testing expense splitting",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

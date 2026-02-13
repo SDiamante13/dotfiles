@@ -14,6 +14,7 @@ The default STARTER_SYMBOL is ☀️
 - Proactively scan available skills and invoke relevant ones for each task
 - After completing tasks that used skills, suggest improvements to those skills
 - Refactoring approach: "Make the change easy, then make the easy change" (Kent Beck). When adding new integrations, first refactor existing code to be generic (separate commit), then add the feature cleanly.
+- When I give a short or ambiguous request, ask ONE clarifying question immediately rather than guessing. Do not attempt multiple interpretations in sequence.
 
 ## Browser Automation
 

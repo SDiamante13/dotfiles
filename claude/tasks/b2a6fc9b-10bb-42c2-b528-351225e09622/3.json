@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Test settle up / record payment",
-  "description": "Record a payment between companions and verify balance updates",
-  "activeForm": "Testing settle up",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

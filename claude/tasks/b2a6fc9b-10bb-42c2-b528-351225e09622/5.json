@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Generate UAT report",
-  "description": "Create markdown report documenting all bugs, UX issues, and abnormalities found",
-  "activeForm": "Generating UAT report",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

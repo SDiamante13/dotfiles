@@ -30,6 +30,7 @@ claude/cache/
 claude/paste-cache/
 claude/image-cache/
 claude/tasks
+claude/usage-data/
 
 # Dependencies
 node_modules/
