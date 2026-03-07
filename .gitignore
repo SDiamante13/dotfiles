@@ -31,6 +31,14 @@ claude/paste-cache/
 claude/image-cache/
 claude/tasks
 claude/usage-data/
+claude/telemetry/
+claude/teams/
+claude/backups/
+claude/mcp-needs-auth-cache.json
+claude/nwave-install.log
+claude/session-env/
+__pycache__/
+*.pyc
 
 # Dependencies
 node_modules/
