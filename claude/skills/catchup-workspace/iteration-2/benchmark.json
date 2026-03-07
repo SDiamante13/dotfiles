@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "skill_name": "catchup",
+    "skill_path": "/Users/stevendiamante/.claude/skills/catchup/SKILL.md",
+    "executor_model": "claude-opus-4-6",
+    "analyzer_model": "claude-opus-4-6",
+    "timestamp": "2026-03-07T19:20:00Z",
+    "evals_run": ["main-branch-bailout", "content-accuracy"],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_name": "main-branch-bailout",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "expectations": [
+          {"text": "No bail-out message", "passed": true, "evidence": "Skill produced full briefing."},
+          {"text": "Has Catchup Briefing section", "passed": true, "evidence": "Output starts with '## Catchup Briefing'."},
+          {"text": "Has Recent Changes section", "passed": true, "evidence": "Output has '### Recent Changes' with grouped summaries."}
+        ],
+        "time_seconds": 8.0,
+        "tokens": 3500
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "expectations": [
+          {"text": "No bail-out message", "passed": true, "evidence": "Baseline produced full summary."},
+          {"text": "Has Catchup Briefing section", "passed": true, "evidence": "Output has 'Catch Up Summary' header."},
+          {"text": "Has Recent Changes section", "passed": true, "evidence": "Output lists all 20 commits."}
+        ],
+        "time_seconds": 5.0,
+        "tokens": 2000
+      }
+    },
+    {
+      "eval_name": "content-accuracy",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "expectations": [
+          {"text": "Correct branch name (main)", "passed": true, "evidence": "'**Branch:** main (last 20 commits)'"},
+          {"text": "References catchup commit", "passed": true, "evidence": "'Added catchup, grill-me, changelog...'"},
+          {"text": "References nWave commit", "passed": true, "evidence": "'**nWave framework**: Added full agent suite...'"},
+          {"text": "Correct uncommitted file (SKILL.md)", "passed": true, "evidence": "'claude/skills/catchup/SKILL.md — 11 insertions, 4 deletions'"}
+        ],
+        "time_seconds": 8.0,
+        "tokens": 3500
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "expectations": [
+          {"text": "Correct branch name (main)", "passed": true, "evidence": "'**Branch:** main'"},
+          {"text": "References catchup commit", "passed": true, "evidence": "'Add catchup, grill-me, and changelog skills (9701b19)'"},
+          {"text": "References nWave commit", "passed": true, "evidence": "'Add nWave framework... (93a5140)'"},
+          {"text": "Correct uncommitted file (SKILL.md)", "passed": true, "evidence": "'claude/skills/catchup/SKILL.md — 1 file changed'"}
+        ],
+        "time_seconds": 5.0,
+        "tokens": 2000
+      }
+    }
+  ],
+  "run_summary": {
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+3.0",
+      "tokens": "+1500"
+    }
+  },
+  "notes": [
+    "Both evals pass at 100% for the fixed skill.",
+    "Skill output is richer than baseline: includes Active Plan, Beads Status, themed commit grouping.",
+    "Skill takes ~3s longer due to plan/beads lookup steps.",
+    "Content accuracy: both skill and baseline correctly reflect actual repo state."
+  ]
+}

@@ -9,18 +9,25 @@ You are resuming work after a session clear. Your job is to rebuild full working
 
 ## Step 1: Branch Check
 
+If not on main, store the merge-base SHA and continue. 
+
 Run these commands:
 ```bash
 git branch --show-current
 git merge-base HEAD main 2>/dev/null
 ```
 
-- If current branch IS `main`, output: **"On main — nothing to catch up on."** and stop.
-- Otherwise, store the merge-base SHA and continue.
+## Step 2: Git History
 
-## Step 2: Git History (since branch diverged from main)
+If on main (no merge-base range), use the last ~20 commits:
+```bash
+git log --oneline -20
+git diff --stat HEAD~20..HEAD
+git diff --stat          # uncommitted changes
+git diff --cached --stat # staged changes
+```
 
-Run all of these:
+If on a feature branch, use the merge-base range:
 ```bash
 git log --oneline <merge-base>..HEAD
 git diff --stat <merge-base>..HEAD

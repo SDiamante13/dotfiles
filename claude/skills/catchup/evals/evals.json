@@ -1,0 +1,63 @@
+{
+  "skill_name": "catchup",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "catch up",
+      "expected_output": "A briefing with recent commits, uncommitted work, and suggested next step — even when on the main branch. Should NOT bail out with 'On main — nothing to catch up on.'",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no_main_bailout",
+          "description": "Skill does NOT output 'On main — nothing to catch up on' or similar bail-out message",
+          "type": "not_contains",
+          "value": "nothing to catch up on"
+        },
+        {
+          "id": "has_briefing",
+          "description": "Output contains a Catchup Briefing section with recent commits",
+          "type": "contains",
+          "value": "Catchup Briefing"
+        },
+        {
+          "id": "has_recent_changes",
+          "description": "Output contains a Recent Changes section listing commits",
+          "type": "contains",
+          "value": "Recent Changes"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "catch up",
+      "expected_output": "Briefing contains accurate data from actual repo state: correct branch name, real commit messages, and correct uncommitted files.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "correct_branch",
+          "description": "Output states the current branch is 'main'",
+          "type": "contains",
+          "value": "main"
+        },
+        {
+          "id": "has_real_commit_9701b19",
+          "description": "Output references the most recent real commit (catchup/grill-me/changelog skills)",
+          "type": "contains",
+          "value": "catchup"
+        },
+        {
+          "id": "has_real_commit_93a5140",
+          "description": "Output references the nWave framework commit",
+          "type": "contains",
+          "value": "nWave"
+        },
+        {
+          "id": "correct_uncommitted_file",
+          "description": "Output mentions the actual uncommitted file: catchup/SKILL.md",
+          "type": "contains",
+          "value": "SKILL.md"
+        }
+      ]
+    }
+  ]
+}

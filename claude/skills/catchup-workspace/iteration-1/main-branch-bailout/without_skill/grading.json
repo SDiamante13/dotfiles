@@ -1,0 +1,22 @@
+{
+  "eval_id": 1,
+  "eval_name": "main-branch-bailout",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "Skill does NOT output 'nothing to catch up on' bail-out message",
+      "passed": true,
+      "evidence": "Output does not contain any bail-out message. Claude produced a full summary."
+    },
+    {
+      "text": "Output contains a Catchup Briefing section",
+      "passed": true,
+      "evidence": "Output contains 'Catch Up Summary' (equivalent section header). Baseline used its own format."
+    },
+    {
+      "text": "Output contains a Recent Changes section listing commits",
+      "passed": true,
+      "evidence": "Output contains 'Recent Changes (last 20 commits)' with all 20 commits listed."
+    }
+  ]
+}

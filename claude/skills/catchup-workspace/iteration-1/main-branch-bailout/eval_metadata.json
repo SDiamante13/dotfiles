@@ -1,0 +1,25 @@
+{
+  "eval_id": 1,
+  "eval_name": "main-branch-bailout",
+  "prompt": "catch up",
+  "assertions": [
+    {
+      "id": "no_main_bailout",
+      "description": "Skill does NOT output 'On main — nothing to catch up on' or similar bail-out message",
+      "type": "not_contains",
+      "value": "nothing to catch up on"
+    },
+    {
+      "id": "has_briefing",
+      "description": "Output contains a Catchup Briefing section with recent commits",
+      "type": "contains",
+      "value": "Catchup Briefing"
+    },
+    {
+      "id": "has_recent_changes",
+      "description": "Output contains a Recent Changes section listing commits",
+      "type": "contains",
+      "value": "Recent Changes"
+    }
+  ]
+}

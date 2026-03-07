@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "content-accuracy",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "Output states the current branch is 'main'",
+      "passed": true,
+      "evidence": "'**Branch:** main'"
+    },
+    {
+      "text": "Output references the catchup commit (9701b19)",
+      "passed": true,
+      "evidence": "'Add catchup, grill-me, and changelog skills (9701b19)'"
+    },
+    {
+      "text": "Output references the nWave framework commit (93a5140)",
+      "passed": true,
+      "evidence": "'Add nWave framework (agents, commands, skills, lib, templates)... (93a5140)'"
+    },
+    {
+      "text": "Output mentions the actual uncommitted file SKILL.md",
+      "passed": true,
+      "evidence": "'`claude/skills/catchup/SKILL.md` — 1 file changed (unstaged)'"
+    }
+  ]
+}

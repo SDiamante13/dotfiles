@@ -1,0 +1,22 @@
+{
+  "eval_id": 1,
+  "eval_name": "main-branch-bailout",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Skill does NOT output 'nothing to catch up on' bail-out message",
+      "passed": false,
+      "evidence": "Output contains exact text: 'On main — nothing to catch up on.' Skill bailed out at Step 1."
+    },
+    {
+      "text": "Output contains a Catchup Briefing section",
+      "passed": false,
+      "evidence": "Output does not contain 'Catchup Briefing'. Skill stopped before producing any briefing."
+    },
+    {
+      "text": "Output contains a Recent Changes section listing commits",
+      "passed": false,
+      "evidence": "Output does not contain 'Recent Changes'. Skill stopped before producing any content."
+    }
+  ]
+}
