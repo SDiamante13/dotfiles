@@ -44,7 +44,7 @@ Find the most recently modified file in `~/.claude/plans/`:
 ls -t ~/.claude/plans/ | head -1
 ```
 
-Read that file in full. This is likely the active plan from the previous session.
+Read that file in full. Only include the Active Plan section in the briefing if the plan is relevant to the current repository (e.g., references the same project, codebase, or directory). Skip it if the plan is for a different project.
 
 ## Step 4: Beads State
 

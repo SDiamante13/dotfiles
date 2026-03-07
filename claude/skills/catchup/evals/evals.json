@@ -14,10 +14,10 @@
           "value": "nothing to catch up on"
         },
         {
-          "id": "has_briefing",
-          "description": "Output contains a Catchup Briefing section with recent commits",
+          "id": "has_suggested_next_step",
+          "description": "Output contains a concrete suggested next action (proves full briefing was produced, not just headers)",
           "type": "contains",
-          "value": "Catchup Briefing"
+          "value": "Suggested Next Step"
         },
         {
           "id": "has_recent_changes",
