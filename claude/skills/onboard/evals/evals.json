@@ -1,0 +1,52 @@
+{
+  "skill_name": "onboard",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just joined the team and need to get up to speed on this repo. Can you generate onboarding docs for this codebase?",
+      "expected_output": "An ONBOARDING.md file at the repo root covering architecture overview, key files, local setup instructions, and common gotchas. Should reflect the actual structure of the current working directory's codebase.",
+      "files": [],
+      "expectations": [
+        "An ONBOARDING.md file is created at the repository root",
+        "The doc contains a 'What is this?' or equivalent introductory section",
+        "The doc contains an 'Architecture Overview' section with directory structure",
+        "The doc contains a 'Key Files to Read First' section listing at least 5 specific file paths",
+        "The doc contains a 'Local Setup' section with prerequisite tools and setup steps",
+        "The doc contains a 'Common Gotchas' section with at least 2 gotchas",
+        "All file paths mentioned in the doc actually exist in the codebase",
+        "The doc is under 300 lines",
+        "The doc does not contain generic placeholder text like '[insert here]' or 'TODO'"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "hey can you write a getting started guide for new devs on this project? i want them to be able to set up their environment and understand the architecture without bugging me every 5 minutes",
+      "expected_output": "An ONBOARDING.md that is practical and specific — real commands, real file paths, real gotchas from the actual codebase. Should feel like it was written by someone who actually works on the project.",
+      "files": [],
+      "expectations": [
+        "An ONBOARDING.md file is created at the repository root",
+        "The setup section contains actual runnable commands (not just 'run the setup script')",
+        "The doc references the actual programming language and framework used by the codebase",
+        "The key files section includes entry points or main application files",
+        "The architecture section describes how components relate to each other, not just lists directories",
+        "The doc uses the project's actual name, not a generic placeholder",
+        "The gotchas section contains project-specific issues, not generic advice like 'make sure you have git installed'"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "document this repo's architecture for newcomers — I want them to know what's where, what to read first, how to get running, and what'll bite them if they're not careful",
+      "expected_output": "A comprehensive but concise ONBOARDING.md that covers architecture, key files, setup, and gotchas. Should demonstrate that the skill actually explored the codebase (git history, config files, etc.) rather than generating generic content.",
+      "files": [],
+      "expectations": [
+        "An ONBOARDING.md file is created at the repository root",
+        "The doc references information that could only come from reading actual files in the repo (not just directory names)",
+        "The doc includes a 'Common Commands' section or equivalent with build/test/lint commands",
+        "The key files list is ordered or grouped meaningfully (not random)",
+        "The doc mentions version requirements if .nvmrc, .python-version, .tool-versions, or similar exists",
+        "The doc identifies the testing framework used and how to run tests",
+        "The architecture section identifies the main architectural pattern (MVC, monorepo, etc.)"
+      ]
+    }
+  ]
+}
