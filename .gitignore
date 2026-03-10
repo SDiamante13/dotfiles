@@ -37,6 +37,10 @@ claude/backups/
 claude/mcp-needs-auth-cache.json
 claude/nwave-install.log
 claude/session-env/
+
+# Skill eval workspaces (generated artifacts)
+claude/skills/*-workspace/
+.nwave/
 __pycache__/
 *.pyc
 
