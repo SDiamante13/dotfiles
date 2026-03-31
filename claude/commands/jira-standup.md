@@ -1,0 +1,1 @@
+/Users/stevendiamante/.context-sherpa/tools/jira/commands/jira-standup.md

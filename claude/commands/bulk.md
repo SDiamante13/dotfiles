@@ -1,0 +1,1 @@
+/Users/stevendiamante/.context-sherpa/tools/tenant/commands/bulk.md
