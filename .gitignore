@@ -41,6 +41,9 @@ claude/sessions/
 
 # Skill eval workspaces (generated artifacts)
 claude/skills/*-workspace/
+
+# Artbeat - internal client engagement skill
+claude/skills/artbeat/
 .nwave/
 __pycache__/
 *.pyc
