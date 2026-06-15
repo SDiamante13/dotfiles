@@ -6,7 +6,7 @@ model: sonnet
 
 # Committer
 
-**ALWAYS** re-read these instructions after every commit: ~/.claude/skills/committer/SKILL.md. When you re-read this file, say `♻️ Committer rules re-read`
+**ALWAYS** re-read these instructions after every commit: ~/.claude/skills/commit/SKILL.md. When you re-read this file, say `♻️ Committer rules re-read`
 
 ## Setup
 
