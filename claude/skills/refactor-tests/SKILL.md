@@ -48,6 +48,12 @@ Work through these steps in order, making a separate commit for each step that m
    - Order-dependent tests → make independent
    - `toHaveBeenCalledWith` on non-void functions → stub return value instead (Query Command Separation: queries are stubs, commands are mocks)
    - `expect(arr).toHaveLength(n)` followed by element check → remove length check, let element assertion fail directly
+   - **Imperative scaffolding inside tests** — scan test bodies (arrange AND assert sections) for:
+     - `for` loops building lookup maps/lists for assertions
+     - `new HashMap<>()` / `new ArrayList<>()` followed by puts/adds purely to enable an assertion
+     - Manual element lookup by index (`list.get(0)`, `list.get(1)`)
+     - Reflection (`setAccessible`, `Field.set`) to populate test fixtures — replace with builders/setters on the production type
+     Replace with fluent assertion idioms (AssertJ `filteredOn(...).singleElement().satisfies(...)`, `extracting(...)`, `anySatisfy`; Jest `arrayContaining`/`objectContaining`) or stream collectors (`Collectors.toMap`).
    - If test level seems wrong for component, ASK USER with recommendation
 
 ### 6. **Improve test data**
