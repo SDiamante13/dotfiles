@@ -1,0 +1,9 @@
+{
+  "source": "f3358/skills",
+  "pluginName": "tooling",
+  "skillName": "roast-my-agents-md",
+  "commitHash": "3534d6a6eb4dd22b4279ef6b3063413081746e1b",
+  "installedAt": 1781573049686,
+  "repoPath": "plugins/tooling/skills/roast-my-agents-md",
+  "pinned": true
+}

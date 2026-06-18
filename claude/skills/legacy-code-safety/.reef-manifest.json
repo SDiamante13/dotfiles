@@ -1,0 +1,9 @@
+{
+  "source": "f3358/skills",
+  "pluginName": "core",
+  "skillName": "legacy-code-safety",
+  "commitHash": "87f2fbfd5343c7d8db7a9020a10f514ff4677a5c",
+  "installedAt": 1781572886351,
+  "repoPath": "plugins/core/skills/legacy-code-safety",
+  "pinned": true
+}

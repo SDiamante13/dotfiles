@@ -45,6 +45,14 @@ claude/daemon.log
 claude/daemon.status.json
 claude/.last-cleanup
 claude/.last-update-result.json
+claude/.last_update_check
+claude/.credentials.json
+claude/daemon-auth-status.json
+claude/daemon-auth-cooldown
+claude/policy-limits.json
+claude/remote-settings.json
+claude/han/
+.serena/
 
 # Skill eval workspaces (generated artifacts)
 claude/skills/*-workspace/
