@@ -1,6 +1,6 @@
 ---
 name: story-planner
-description: Break application into thin vertical slices with clear acceptance criteria
+description: Break an application or feature into thin vertical user-story slices with clear acceptance criteria and user-observable value. Use when planning a backlog, decomposing a feature, writing implementation-ready stories, or turning requirements into deliverable slices.
 ---
 
 # Story Planning Assistant

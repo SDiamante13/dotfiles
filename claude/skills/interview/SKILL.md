@@ -1,6 +1,6 @@
 ---
 name: interview
-description: Interview me about a plan. Triggers on 'interview me'.
+description: Interview the user deeply about a plan, probing technical implementation, UI/UX, risks, tradeoffs, and missing decisions before writing or refining a spec. Use when the user says "interview me" or asks to be questioned about a plan.
 ---
 
 Read the plan file and interview me using the AskUserQuestion tool.

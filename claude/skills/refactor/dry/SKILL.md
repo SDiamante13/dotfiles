@@ -1,6 +1,8 @@
 ---
-name: refactor:dry
-description: Apply DRY principle to remove code duplication
+name: dry
+description: Refactor duplicated code by extracting helpers, shared abstractions, or clearer reusable structure. Use when asked to apply DRY, remove duplication, consolidate repeated logic, or run `/refactor:dry`.
+metadata:
+  legacy-name: refactor:dry
 ---
 
 # DRY Refactor

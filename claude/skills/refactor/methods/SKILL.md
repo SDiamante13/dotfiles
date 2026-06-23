@@ -1,6 +1,8 @@
 ---
-name: refactor:methods
-description: Extract small, focused methods from large code blocks
+name: methods
+description: Refactor long methods or large code blocks by extracting small, focused helper methods with clear names and narrow responsibilities. Use when asked to extract methods or run `/refactor:methods`.
+metadata:
+  legacy-name: refactor:methods
 ---
 
 # Extract Methods Refactor

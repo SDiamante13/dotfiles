@@ -1,6 +1,6 @@
 ---
 name: remember
-description: Compile top 5 insights to add to CLAUDE.md before clearing conversation
+description: Compile up to five durable insights from the current conversation for possible addition to CLAUDE.md. Use before clearing context, when asked to remember lessons, or when the user wants project conventions and preferences preserved.
 ---
 
 First, read the current CLAUDE.md file to understand what's already documented.

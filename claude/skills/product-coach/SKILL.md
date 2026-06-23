@@ -4,10 +4,7 @@ description: Product-discovery coach for Fishbowl engineers — inspired by Mart
 metadata:
   author: Fishbowl Team
   version: "0.1"
-tags:
-  - planning
-  - product-management
-  - discovery
+  tags: planning, product-management, discovery
 ---
 
 # Product Coach — stage router

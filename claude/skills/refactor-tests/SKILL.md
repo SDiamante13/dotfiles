@@ -1,6 +1,6 @@
 ---
 name: refactor-tests
-description: Refactor test files to improve clarity and remove anti-patterns
+description: Refactor test files to improve behavioral coverage, clarity, structure, assertions, fixture setup, mocking strategy, and remove implementation-detail or low-value tests. Use when asked to clean up, declutter, consolidate, or improve tests.
 ---
 
 # Test Refactor

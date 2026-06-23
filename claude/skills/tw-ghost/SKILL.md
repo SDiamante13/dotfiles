@@ -1,7 +1,7 @@
 ---
 name: tw-ghost
 description: Create a language-agnostic ghost package (spec + portable tests) from an existing repo by extracting SPEC.md, exhaustive tests.yaml (operations and/or scenarios), INSTALL.md, README.md, VERIFY.md, and upstream LICENSE files with provenance and regeneration instructions. Use when prompts say "/tw-ghost", "ghostify this repo", "spec-ify/spec-package this library", "ghost library", or ask to extract portable spec/tests for libraries or tool-using agent loops (scenario testing); do not use for implementation work or editing skills.
-allowed-tools: ["Bash"]
+allowed-tools: Bash
 ---
 
 # ghost

@@ -1,6 +1,6 @@
 ---
 name: save
-description: Save your latest learnings
+description: Save the latest learning as a numbered markdown file under ~/.claude/learnings and update the learnings index with title and tags. Use when the user says "save", asks to record a learning, or wants the current insight stored for later.
 ---
 
 # INSTRUCTIONS

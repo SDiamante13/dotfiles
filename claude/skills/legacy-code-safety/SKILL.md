@@ -1,15 +1,9 @@
 ---
 name: legacy-code-safety
-user-invocable: false
 description: Use when modifying, removing, or refactoring code that lacks test coverage. Emphasizes the danger of untested changes and the RGR workflow to add characterization tests before modifications.
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
+allowed-tools: Read Write Edit Bash Grep Glob
 metadata:
+  user-invocable: "false"
   author: Fishbowl Team
   version: "0.1.0"
 ---

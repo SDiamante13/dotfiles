@@ -1,6 +1,8 @@
 ---
-name: refactor:value-objects
-description: /value-objects
+name: value-objects
+description: Analyze code for primitive obsession and plan value object extractions around domain concepts, validation, and grouped primitive fields. Use when the user says `/value-objects`, asks for value object refactoring, or runs `/refactor:value-objects`.
+metadata:
+  legacy-name: refactor:value-objects
 ---
 
 Analyze the class provided in $ARGUMENTS for instances of primitive obsession and suggest value object extractions.

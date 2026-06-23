@@ -1,6 +1,8 @@
 ---
-name: refactor:functional
-description: Declarative Functional Programming
+name: functional
+description: Refactor Swift code toward declarative functional programming with immutability, value types, pure functions, transformations, and closure-based APIs. Use when asked for functional refactoring or `/refactor:functional`.
+metadata:
+  legacy-name: refactor:functional
 ---
 
 Refactor this Swift codebase to follow functional programming principles:

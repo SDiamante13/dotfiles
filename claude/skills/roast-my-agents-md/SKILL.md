@@ -1,20 +1,13 @@
 ---
 name: roast-my-agents-md
 description: Brutally honest AGENTS.md/CLAUDE.md review backed by real A/B test evidence. Not just opinions — actual proof that your rules are dead weight. Roasts instruction files for bloat, slop, and redundancy, then proves it by running evals. Use when user says "roast my agents.md", "roast my CLAUDE.md", "prove my rules are useless", "eval roast", or wants entertaining evidence-based feedback on their AI config files. Also triggers on "audit my instructions" or "are my rules helping".
+license: MIT
+allowed-tools: Read Write Edit Bash Glob Grep Workflow
 metadata:
   author: vltansky (ported by Fishbowl Team)
   version: "1.1.0"
-license: MIT
-tags:
-  - tooling
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Glob
-  - Grep
-  - Workflow
+  tags: tooling
+  context: fork
 ---
 
 # Roast My AGENTS.md (Evidence Edition)

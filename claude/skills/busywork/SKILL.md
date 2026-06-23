@@ -1,15 +1,12 @@
 ---
 name: busywork
 description: This skill should be used when the user invokes /busywork to start or resume an autonomous Jira-ticket loop, or when ScheduleWakeup fires a /busywork prompt. Picks deprecation/cleanup tickets off a user-specified Jira board, implements via BDD/TDD in an isolated worktree, opens MRs with auto-selected reviewers, addresses CI/review feedback, and auto-merges — then /clear's and picks the next. Runs in live mode against real tickets or replay mode against historical merged MRs for calibration. Triggers on "/busywork", "/busywork live [board-url]", "/busywork replay [N] [board-url]", or any continuation prompt passed in by ScheduleWakeup.
-argument-hint: [live|replay [N]] [board-url]
-allowed-tools: Bash, Read, Edit, Write, Grep, Glob, Agent, Skill, WebFetch, TaskCreate, TaskUpdate, ScheduleWakeup, AskUserQuestion
+allowed-tools: Bash Read Edit Write Grep Glob Agent Skill WebFetch TaskCreate TaskUpdate ScheduleWakeup AskUserQuestion
 metadata:
+  argument-hint: "[live|replay [N]] [board-url]"
   author: John Wilger
   version: "0.2.0"
-tags:
-  - automation
-  - execution
-  - mr-feedback
+  tags: automation, execution, mr-feedback
 ---
 
 # busywork — Autonomous Jira Loop

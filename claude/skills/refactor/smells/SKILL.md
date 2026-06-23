@@ -1,6 +1,8 @@
 ---
-name: refactor:smells
-description: /smells
+name: smells
+description: Analyze a class or module for code smells and produce a prioritized refactoring plan. Use when the user asks for code smell analysis, says `/smells`, or runs `/refactor:smells`.
+metadata:
+  legacy-name: refactor:smells
 ---
 
 Analyze the provided class for code smells and create a refactoring plan.

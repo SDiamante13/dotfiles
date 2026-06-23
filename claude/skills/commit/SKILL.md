@@ -1,7 +1,8 @@
 ---
 name: commit
-description: Commit changes with quality checks. Triggers on 'c' or 'commit'.
-model: sonnet
+description: Commit the current changes with quality checks, status review, staged diff inspection, appropriate tests, and a clear commit message. Use when the user says "commit", "c", asks to make a commit, or wants changes saved in git.
+metadata:
+  model: sonnet
 ---
 
 # Committer

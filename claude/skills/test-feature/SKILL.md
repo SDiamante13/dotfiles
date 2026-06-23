@@ -1,6 +1,6 @@
 ---
 name: test-feature
-description: Test newly added features using browser automation for acceptance testing
+description: Acceptance-test newly added features using browser automation, happy-path flows, screenshots, UX notes, and a written report. Use when asked to test a feature, verify a recent UI change, or check whether an app workflow works.
 ---
 
 # Feature Acceptance Testing

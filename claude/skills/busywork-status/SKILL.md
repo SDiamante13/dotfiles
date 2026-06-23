@@ -1,13 +1,12 @@
 ---
 name: busywork-status
 description: This skill should be used when the user invokes /busywork:status or asks for a summary of the busywork loop's current state, progress, or recent history. Pure read-only — displays what busywork is doing right now (mode, board, active ticket, MR, attempt counter, next scheduled wake-up reason) plus the most recent 10 history entries. Does not modify any state or external system. Triggers on "/busywork:status", "busywork status", "what is busywork doing", "where is the loop".
-argument-hint: (no arguments)
-allowed-tools: Read, Bash, Glob
+allowed-tools: Read Bash Glob
 metadata:
+  argument-hint: "(no arguments)"
   author: John Wilger
   version: "0.2.0"
-tags:
-  - automation
+  tags: automation
 ---
 
 # busywork:status — Read-only summary

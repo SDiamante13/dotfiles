@@ -1,6 +1,8 @@
 ---
 name: sweep
 description: "Two-phase code quality skill: (1) review codebase for structural smells — file LOC, method LOC, accidental complexity, test readability — producing a structured report, then (2) fix all smells via provable refactorings with ACN micro commits and green-bar-at-all-times discipline. Use this skill when the user says 'sweep', 'code review', 'find code smells', 'check method lengths', 'review for complexity', 'tidy up the codebase', 'refactor smells', or asks about long methods, test readability, or accidental complexity. Also trigger when users ask to 'clean up' or 'improve code quality' across multiple files."
+metadata:
+  context: fork
 ---
 
 # Sweep

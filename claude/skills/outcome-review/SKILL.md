@@ -4,11 +4,7 @@ description: Post-launch review of a shipped PRD against the brief's success met
 metadata:
   author: Fishbowl Team
   version: "0.1"
-tags:
-  - planning
-  - product-management
-  - outcome-review
-  - retrospective
+  tags: planning, product-management, outcome-review, retrospective
 ---
 
 # Outcome Review — did it work?

@@ -59,6 +59,10 @@ claude/skills/*-workspace/
 
 # Artbeat - internal client engagement skill
 claude/skills/artbeat/
+
+# Work-specific client skills
+claude/skills/resolve-mr-comments/
+claude/skills/team-mr-digest/
 .nwave/
 __pycache__/
 *.pyc

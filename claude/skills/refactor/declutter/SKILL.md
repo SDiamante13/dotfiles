@@ -1,6 +1,8 @@
 ---
-name: refactor:declutter
-description: Refactor a class by removing dead code, useless comments, unused variables, and imports
+name: declutter
+description: Refactor code to remove dead code, useless comments, unused variables, and unused imports. Use when asked to declutter a class, clean up noisy code, remove cruft, or run `/refactor:declutter`.
+metadata:
+  legacy-name: refactor:declutter
 ---
 
 # Declutter Refactor

@@ -1,7 +1,7 @@
 ---
 name: tw-parse
 description: Analyze a local codebase and infer the architecture it is actually using, including repo kind, best-fit dominant architecture, directly evidenced coexisting patterns, major subsystem exceptions, confidence, docs-vs-code drift, and repo-fit hints for downstream agents. Use when prompts ask what architecture a repo uses, whether it is really hexagonal or just layered, what subtle patterns shape a repo or slice, how a target slice fits a hybrid monorepo, whether documented architecture matches implementation, or when `/tw-tk` needs a repo-dialect preflight before making a minimal change.
-allowed-tools: ["Bash"]
+allowed-tools: Bash
 ---
 
 # Parse

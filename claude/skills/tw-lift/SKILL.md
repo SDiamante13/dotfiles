@@ -1,7 +1,7 @@
 ---
 name: tw-lift
 description: "Comprehensive, measurement-driven performance optimization for latency, throughput, memory/GC, and tail behavior. Use when the user asks to optimize/speed up, reduce latency (p95/p99), increase throughput/QPS, lower CPU/memory/allocations/GC pauses, profile hot paths, or run a benchmarked perf pass (including JSONL/query-heavy code). Requires before/after measurement on a runnable workload (or an explicit `UNMEASURED` plan) plus a correctness gate."
-allowed-tools: ["Bash"]
+allowed-tools: Bash
 ---
 
 # Lift

@@ -1,6 +1,8 @@
 ---
 name: exploratory-testing
-description: Perform comprehensive exploratory testing on a website using browser automation
+description: Perform comprehensive exploratory testing on a website using browser automation, covering user journeys, forms, errors, accessibility, responsiveness, performance, and security basics. Use when asked to QA a site, explore an app, find bugs, or produce a browser testing report.
+metadata:
+  context: fork
 ---
 
 # Website Exploratory Testing

@@ -1,6 +1,8 @@
 ---
-name: refactor:srp
-description: /srp
+name: srp
+description: Refactor a class toward the Single Responsibility Principle by identifying responsibilities, grouping cohesive behavior, and extracting focused classes. Use when the user says `/srp`, asks for SRP refactoring, or runs `/refactor:srp`.
+metadata:
+  legacy-name: refactor:srp
 ---
 
 Refactor the class provided in $ARGUMENTS to adhere to the Single Responsibility Principle by extracting classes and simplifying the design.

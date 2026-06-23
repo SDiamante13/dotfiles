@@ -1,6 +1,6 @@
 ---
 name: script
-description: Bash Script Style Process
+description: "Apply Steven's Bash script style rules: strict mode, minimal validation, concise logic, executable scripts, and no unnecessary comments or echoes. Use when creating, reviewing, or refactoring shell scripts."
 ---
 
 STARTER_CHARACTER = 💻

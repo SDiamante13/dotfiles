@@ -4,11 +4,7 @@ description: Conduct a Marty-Cagan-style opportunity assessment interview and pr
 metadata:
   author: Fishbowl Team
   version: "0.1"
-tags:
-  - planning
-  - product-management
-  - discovery
-  - opportunity-brief
+  tags: planning, product-management, discovery, opportunity-brief
 ---
 
 # Opportunity Brief — Cagan interview

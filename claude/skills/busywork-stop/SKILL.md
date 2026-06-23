@@ -1,13 +1,12 @@
 ---
 name: busywork-stop
 description: This skill should be used when the user invokes /busywork:stop or asks to halt, pause, stop, or kill the busywork loop. Writes a stop flag to busywork's per-board state file; the loop exits quietly at its next scheduled wake-up without opening new MRs or transitioning more tickets. Does not force-kill in-flight work — any ticket currently being worked will complete its current tick and stop before starting the next. Triggers on "/busywork:stop", "stop busywork", "halt busywork", "pause the loop", "kill busywork".
-argument-hint: (no arguments)
-allowed-tools: Read, Write, Bash, Glob
+allowed-tools: Read Write Bash Glob
 metadata:
+  argument-hint: "(no arguments)"
   author: John Wilger
   version: "0.2.0"
-tags:
-  - automation
+  tags: automation
 ---
 
 # busywork:stop — Graceful halt

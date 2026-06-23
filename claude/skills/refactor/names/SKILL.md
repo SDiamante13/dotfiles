@@ -1,6 +1,8 @@
 ---
-name: refactor:names
-description: Rename variables, methods, and classes to be more descriptive
+name: names
+description: Refactor code by renaming variables, methods, classes, and concepts for clearer intent. Use when asked to improve names, clarify naming, perform a naming pass, or run `/refactor:names`.
+metadata:
+  legacy-name: refactor:names
 ---
 
 # Rename Refactor

@@ -1,6 +1,6 @@
 ---
 name: ui-redesign
-description: I need you to help me set up and manage a UI redesign experiment with 3 different design approaches.
+description: Set up and manage a UI redesign experiment with three git worktree branches for modern minimal, bold creative, and classic refined design directions. Use when asked to run a UI redesign experiment, compare design approaches, or prototype multiple visual directions in parallel branches.
 ---
 
 ## Initial Setup
