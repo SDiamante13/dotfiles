@@ -1,9 +1,0 @@
-{
-  "source": "f3358/skills",
-  "pluginName": "busywork",
-  "skillName": "busywork-stop",
-  "commitHash": "09a65f67d9ac381e61e4d3a64cd58d18d13cbdba",
-  "installedAt": 1781573150285,
-  "repoPath": "plugins/busywork/skills/busywork-stop",
-  "pinned": true
-}

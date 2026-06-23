@@ -61,6 +61,7 @@ claude/skills/*-workspace/
 claude/skills/artbeat/
 
 # Work-specific client skills
+claude/skills/busywork*/
 claude/skills/resolve-mr-comments/
 claude/skills/team-mr-digest/
 .nwave/
