@@ -1,4 +1,0 @@
-interface:
-  display_name: "TDD Cycle"
-  short_description: "Drive red-green-refactor development"
-  default_prompt: "Use $tdd-cycle to implement this change test-first with red, green, refactor proof."
