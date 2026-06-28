@@ -1,6 +1,17 @@
 ---
 name: tidy
-description: TDD Production Code Refactoring Process. Triggers on 'tidy up'.
+allowed-tools:
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+  - Bash
+  - Workflow
+description: TDD Production Code Refactoring Process. Triggers on 'tidy up', 'tidy this', 'clean up code'. Use for refactoring production code with test coverage.
+metadata:
+  author: Fishbowl Team
+  version: "0.2.0"
 ---
 
 # TDD Production Code Refactoring Process
@@ -44,17 +55,47 @@ This process is for refactoring production code with test coverage.
 
 ## Refactoring Loop
 
-For each approved refactor:
-1. Perform the refactoring (one at a time, in priority order)
-2. Run tests to ensure they still pass
-3. If tests pass: commit with message format `"- r <refactoring>"` (quotes must include the - r)
-4. If tests fail: revert changes and try a different refactoring
-5. Provide brief status update after each refactor
+The approval is interactive and **stays here** (Initial Setup step 3): you present the
+numbered findings, ask which to proceed with, and wait for user confirmation. Only the
+deterministic apply → green-gate → commit/revert loop is encoded as a **Workflow**, so the
+strike cap, green gate, and exact commit-message format run reliably instead of by prose.
+
+Once the user has confirmed the subset, invoke the `Workflow` tool with the bundled script,
+passing the human-approved refactor list (in priority order):
+
+```
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/tidy/workflow.js",
+  args: {
+    refactors: ["<approved refactor 1>", "<approved refactor 2>", ...],  // priority order
+    testCommand: "<how to run the suite>",   // optional; agent infers if omitted
+    productionFile: "<path>",                 // optional; the file being tidied
+    testFile: "<path>"                        // optional; NEVER modified
+  }
+})
+```
+
+For each approved refactor the workflow runs:
+
+1. An agent applies **only that one** refactoring (one at a time, in priority order) to
+   **production code** — it **NEVER touches test code** — and returns the diff.
+2. A gate agent (Haiku) runs the test suite and returns `{ passed, output }`.
+3. If `passed === true`: commit with message format `"- r <refactoring>"` (quotes must
+   include the - r). The loop **does not commit until the gate reports `passed === true`**.
+4. If tests fail: revert this attempt's changes and retry — up to **three** attempts.
+
+It returns `{ total, attempted, committed, halted, outcomes }`, where each outcome carries
+`{ index, refactor, committed, commitMessage, attempts, halted }`. Give a brief status
+update after each refactor from the returned outcomes.
 
 **Stop conditions:**
-- If a refactor fails three times
+- If a refactor fails three times (the workflow halts and returns `halted: true`)
 - If no further refactoring opportunities found
 - Pause and check with user
+
+When the workflow returns `halted: true`, **pause and check with the user** before doing
+anything else — report which refactor failed and its attempt output; do not continue to the
+next refactor on your own.
 
 ## Code Style Guidelines
 

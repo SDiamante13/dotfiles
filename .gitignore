@@ -64,7 +64,8 @@ claude/skills/artbeat/
 claude/skills/busywork*/
 claude/skills/resolve-mr-comments/
 claude/skills/team-mr-digest/
-.nwave/
+.nwave/*
+!.nwave/local-config.json
 __pycache__/
 *.pyc
 
