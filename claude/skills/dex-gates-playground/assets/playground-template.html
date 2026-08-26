@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- FILL IN: <TICKET> — <short problem statement> -->
+<title>TICKET-000 — Design Playground</title>
+<!-- Applied before first paint. Setting the theme in the main script instead
+     gives dark-mode users a white flash on every load. -->
+<script>try{var t=localStorage.getItem('pg-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<style>
+/* ── Light is the default. Every color is defined here first; the dark block
+      below overrides ONLY what changes. Never define a color only in dark. ── */
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#f0f2f5; --line:#dfe3e8; --line2:#c8cfd8;
+  --ink:#16202b; --dim:#5b6673; --faint:#6b7684;
+  /* Edge colors double as 10px pill TEXT, so they need text contrast, not just
+     line visibility — that is why --alt is darker here than a line would need. */
+  --accent:#1c6fd4; --alt:#96620f; --danger:#c9364a; --ok:#1a8a5c; --warn:#8a6410; --violet:#6b4fce;
+  --on-accent:#ffffff;
+  --node-fill:#ffffff; --node-fill-alt:#f4f7fb; --lane-fill:#e9edf2; --lane-ink:#5f6975;
+  --shadow:0 1px 2px rgba(16,26,40,.06), 0 2px 8px rgba(16,26,40,.04);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#0e1116; --panel:#151a21; --panel2:#1b222b; --line:#28313d; --line2:#3a4655;
+  --ink:#e6edf3; --dim:#93a0b0; --faint:#8b96a3;
+  --accent:#4ea1ff; --alt:#e0a13a; --danger:#f0616d; --ok:#3fc98a; --warn:#f0b849; --violet:#a98bff;
+  /* dark accent is a light blue — white text on it is 2.67:1 and fails AA */
+  --on-accent:#08121f;
+  --node-fill:#1b222b; --node-fill-alt:#16202c; --lane-fill:#131922; --lane-ink:#7d8996;
+  --shadow:none;
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+
+header{display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{margin:0;font-size:15px;font-weight:650;letter-spacing:-.01em}
+header .sub{color:var(--dim);font-size:12px} header .spacer{flex:1}
+header .badge{font:11px/1 var(--mono);color:var(--faint);border:1px solid var(--line);padding:5px 8px;border-radius:5px}
+#themeBtn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--dim)}
+#themeBtn:hover{border-color:var(--accent);color:var(--ink)}
+
+nav{display:flex;gap:2px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:11px 14px;color:var(--dim);font-size:13px}
+nav button .n{font:11px/1 var(--mono);color:var(--faint);margin-right:7px}
+nav button:hover{color:var(--ink)}
+nav button.on{color:var(--ink);border-bottom-color:var(--accent)} nav button.on .n{color:var(--accent)}
+
+main{display:grid;grid-template-columns:390px 1fr;height:calc(100vh - 104px)}
+#controls{overflow-y:auto;border-right:1px solid var(--line);background:var(--panel);padding:16px 16px 40px}
+#right{display:grid;grid-template-rows:1fr auto;overflow:hidden}
+#preview{overflow:auto;padding:18px}
+#promptWrap{border-top:1px solid var(--line);background:var(--panel);padding:12px 16px 14px;max-height:38vh;display:flex;flex-direction:column}
+
+h2.sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:20px 0 9px;font-weight:650}
+h2.sec:first-child{margin-top:2px}
+.q{margin-bottom:16px} .q .label{font-size:13px;font-weight:650;margin-bottom:2px}
+.q .hint{font-size:11.5px;color:var(--dim);margin-bottom:7px;line-height:1.45}
+.opts{display:flex;flex-direction:column;gap:5px}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel2)}
+.opt:hover{border-color:var(--line2)}
+.opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.opt input{margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt>span{min-width:0}
+.opt .t{font-size:12.5px;font-weight:650;overflow-wrap:anywhere}
+.opt .d{display:block;font-size:11.5px;color:var(--dim);line-height:1.45;margin-top:2px;overflow-wrap:anywhere}
+.opt .tag{display:inline-block;font:10px/1 var(--mono);padding:2px 5px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.rec{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.tag.risk{background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger)}
+.tag.story{background:color-mix(in srgb,var(--violet) 16%,transparent);color:var(--violet)}
+
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.presets button{background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:11.5px;color:var(--dim)}
+.presets button:hover{border-color:var(--accent);color:var(--ink)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 8px;font-size:13.5px;font-weight:650}
+.card p{margin:0 0 8px;font-size:12.5px;color:var(--dim);line-height:1.55} .card p:last-child{margin-bottom:0}
+.card code,.note code{font:11.5px var(--mono);color:var(--accent);background:var(--panel2);padding:1px 4px;border-radius:3px}
+table.matrix{border-collapse:collapse;width:100%;font-size:12.5px;margin-bottom:16px;background:var(--panel);box-shadow:var(--shadow)}
+table.matrix th,table.matrix td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.matrix th{background:var(--panel2);color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+pre.code{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:13px 15px;overflow-x:auto;font:12px/1.65 var(--mono);color:var(--ink);margin:0 0 14px}
+.code .kw{color:var(--violet)}.code .ty{color:var(--accent)}.code .st{color:var(--ok)}
+.code .cm{color:var(--faint);font-style:italic}.code .add{color:var(--ok)}.code .del{color:var(--danger)}
+
+.diagramWrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px 14px;margin-bottom:14px;box-shadow:var(--shadow);overflow-x:auto}
+svg{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:11.5px;color:var(--dim);padding:0 14px}
+.legend i{display:inline-block;width:24px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:4px;margin-right:6px}
+
+.slice{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-left-width:3px;border-radius:8px;padding:11px 13px;margin-bottom:8px;background:var(--panel);box-shadow:var(--shadow)}
+.slice.off{opacity:.4}
+.slice .num{font:11px/1 var(--mono);color:var(--faint);flex:none;margin-top:3px;width:20px}
+.slice .t{font-size:13px;font-weight:650}
+.slice .d{display:block;font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}
+.slice .prove{display:block;font-size:11.5px;color:var(--ok);margin-top:5px} .slice .prove b{color:var(--dim);font-weight:650}
+
+.commentRow{display:flex;gap:8px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;margin-bottom:6px;font-size:12px}
+.commentRow .who{font:11px/1.4 var(--mono);color:var(--accent);flex:none;max-width:110px;word-break:break-word}
+.commentRow .x{margin-left:auto;color:var(--faint);border:0;background:none;padding:0 2px;flex:none}
+.commentRow .x:hover{color:var(--danger)}
+textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--ink);padding:8px 10px;font:12px/1.5 var(--mono);resize:vertical}
+textarea:focus{outline:none;border-color:var(--accent)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--dim)}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+
+#promptHead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#promptHead .t{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:650}
+#promptHead .spacer{flex:1}
+#copyBtn{background:var(--accent);color:var(--on-accent);border:0;border-radius:7px;padding:7px 15px;font-size:12.5px;font-weight:650}
+#copyBtn:hover{filter:brightness(1.08)}
+#promptOut{flex:1;overflow-y:auto;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:12px/1.65 var(--mono);color:var(--ink);white-space:pre-wrap;margin:0}
+
+.note{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,var(--panel));padding:10px 13px;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--ink);line-height:1.55;margin-bottom:14px}
+.note.bad{border-left-color:var(--danger);background:color-mix(in srgb,var(--danger) 9%,var(--panel))}
+.note.good{border-left-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--panel))}
+.note.info{border-left-color:var(--violet);background:color-mix(in srgb,var(--violet) 9%,var(--panel))}
+.note b{font-weight:650}
+</style>
+</head>
+<body>
+<header>
+  <h1>TICKET-000 — Design Playground</h1>
+  <span class="sub">one-line problem statement</span>
+  <span class="spacer"></span>
+  <span class="badge" id="stateBadge">—</span>
+  <button id="resetBtn" class="btn" title="Discard saved decisions for this ticket">Reset</button>
+  <button id="themeBtn">Dark</button>
+</header>
+<nav id="gates"></nav>
+<main>
+  <aside id="controls"></aside>
+  <section id="right">
+    <div id="preview"></div>
+    <div id="promptWrap">
+      <div id="promptHead"><span class="t">Prompt — paste back into Claude</span><span class="spacer"></span>
+        <button id="copyBtn">Copy Prompt</button></div>
+      <pre id="promptOut"></pre>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ══════════ 1. STATE — every control writes here, every render reads here ══════════ */
+const DEFAULTS = {
+  gate:'product',
+  approach:'option-a',        // FILL IN: your real decision keys
+  seam:'service',
+  scope:'minimal',
+  tests:{unit:true,integration:true,regression:true},
+  slices:{s0:true,s1:true,s2:true,s3:false},
+  comments:[]
+};
+/* FILL IN: the ticket key. Scopes saved state so two playgrounds don't collide. */
+const TICKET = 'TICKET-000';
+const SAVE_KEY = `pg-state:${TICKET}`;
+
+/* Restore prior session. A decision-capture tool that loses decisions on an
+   accidental reload gets abandoned after exactly one incident, so this is not
+   a nicety. Merged key-by-key rather than replaced, so a saved state written
+   before you added a control still loads instead of throwing. */
+const state = (()=>{
+  const base = structuredClone(DEFAULTS);
+  try{
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+    if(saved && typeof saved==='object'){
+      for(const k of Object.keys(base)){
+        if(!(k in saved)) continue;
+        base[k] = (base[k] && typeof base[k]==='object' && !Array.isArray(base[k]))
+          ? {...base[k], ...saved[k]}   // keep new keys, take saved values
+          : saved[k];
+      }
+    }
+  }catch(e){ /* corrupt or unavailable storage — fall back to defaults */ }
+
+  /* Validate restored scalars against the CURRENT option sets. Renaming a
+     decision key between sessions is the normal iteration workflow for this
+     artifact, and an unvalidated restore turns that into a TypeError inside
+     updatePrompt — the copy-out prompt freezes while the UI still looks live,
+     which is the worst possible failure for a tool whose output IS the prompt. */
+  for(const key of Object.keys(OPTIONS)){
+    if(!OPTIONS[key].some(o=>o.v===base[key])) base[key]=DEFAULTS[key];
+  }
+  if(!(base.gate in CONTROLS)) base.gate=DEFAULTS.gate;
+  return base;
+})();
+
+function saveState(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function resetState(){
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  Object.assign(state, structuredClone(DEFAULTS));
+  renderAll();
+}
+
+/* Evidence gathered during research. Each entry is emitted verbatim into the
+   copy-out prompt (see updatePrompt), because whoever reads that prompt next
+   will not have the research context that constrained these decisions. */
+const EVIDENCE = [
+  // FILL IN, e.g.:
+  // 'Prod traffic: 0 hits over 14.8 months; live only in CI environments.',
+  // 'Consumers: one caller in the web client; none elsewhere in the workspace.',
+  // 'Flag state: the push flag is off for every tenant, not merely unwired.'
+];
+
+const GATES=[{id:'product',n:'1',label:'Product'},{id:'architecture',n:'2',label:'Architecture'},
+             {id:'design',n:'3',label:'Program Design'},{id:'slices',n:'4',label:'Vertical Slices'}];
+
+/* ══════════ 2. OPTIONS — only real choices. Tag honestly. ══════════ */
+const OPTIONS = {
+  approach:[
+    {v:'option-a',t:'Option A',rec:true,d:'What it is, and the concrete consequence of choosing it.'},
+    {v:'option-b',t:'Option B',d:'The tradeoff, stated plainly rather than sold.'},
+    {v:'option-c',t:'Option C',risk:true,d:'Name what it breaks. A risk tag with no stated failure is decoration.'}
+  ],
+  seam:[
+    {v:'controller',t:'At the controller',d:'Matches existing convention; may duplicate downstream logic.'},
+    {v:'service',t:'In the service',rec:true,d:'Keeps existing error handling intact.'},
+    {v:'per-item',t:'Per item in the loop',d:'Simplest read; repeats the decision N times per request.'}
+  ],
+  scope:[
+    {v:'minimal',t:'Minimal',rec:true,d:'Smallest diff that solves the stated problem.'},
+    {v:'full',t:'Full',d:'Also closes the adjacent gaps. Wider blast radius.'}
+  ]
+};
+
+const SLICES = {
+  s0:{t:'Tracer — wired end to end, doing nothing real',
+      d:'Prove the path exists and is observable before any behaviour changes.',
+      p:'The new route is observable in metrics/logs and output is byte-identical to today.'},
+  s1:{t:'Happy path',d:'The single simplest real case, end to end.',p:'One valid input produces the correct result in the real store.'},
+  s2:{t:'Error and edge handling',d:'What happens when the dependency fails or the input is bad.',p:'A forced failure produces the right error without corrupting the rest.'},
+  s3:{t:'Adjacent capability',d:'The next capability, only if it is in scope.',p:'State a demonstrable check.'}
+};
+
+/* ══════════ 3. DIAGRAM PRIMITIVES — shape carries meaning ══════════
+   Rounded rect = service · cylinder = datastore · hexagon = decision.
+   All fills/strokes use CSS vars so the theme toggle restyles for free. */
+const SH = {
+  lane:(x,y,w,h,label)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="var(--lane-fill)"/>
+    <text x="${x+12}" y="${y+16}" fill="var(--lane-ink)" font-size="9.5" font-weight="700"
+      letter-spacing="1.2" font-family="ui-monospace,monospace">${label.toUpperCase()}</text>`,
+
+  service(n,{accent='var(--line2)',seam=false,flagged=false}={}){
+    return `<g data-node="${n.id}" data-label="${esc(n.label)}" style="cursor:pointer">
+      ${seam?`<rect x="${n.x-6}" y="${n.y-6}" width="${n.w+12}" height="${n.h+12}" rx="12" fill="none"
+        stroke="var(--violet)" stroke-width="1.4" stroke-dasharray="5,4" opacity=".85"/>`:''}
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="7" fill="var(--node-fill)"
+        stroke="${flagged?'var(--ok)':accent}" stroke-width="${flagged?2:1.2}"/>
+      <rect x="${n.x}" y="${n.y}" width="4" height="${n.h}" rx="2" fill="${accent}"/>
+      <text x="${n.x+16}" y="${n.y+21}" fill="var(--ink)" font-size="11.5" font-weight="650">${esc(clip(n.label,38))}</text>
+      <text x="${n.x+16}" y="${n.y+37}" fill="var(--dim)" font-size="9.5" font-family="ui-monospace,monospace">${esc(clip(n.sub,46))}</text>
+      ${flagged?`<circle cx="${n.x+n.w-11}" cy="${n.y+11}" r="4" fill="var(--ok)"/>`:''}</g>`;
+  },
+  store(n,{accent='var(--line2)',flagged=false}={}){
+    const ry=9;
+    return `<g data-node="${n.id}" data-label="${esc(n.label)}" style="cursor:pointer">
+      <path d="M${n.x},${n.y+ry} a${n.w/2},${ry} 0 0 1 ${n.w},0 v${n.h-2*ry} a${n.w/2},${ry} 0 0 1 ${-n.w},0 z"
+        fill="var(--node-fill-alt)" stroke="${flagged?'var(--ok)':accent}" stroke-width="${flagged?2:1.2}"/>
+      <ellipse cx="${n.x+n.w/2}" cy="${n.y+ry}" rx="${n.w/2}" ry="${ry}" fill="var(--node-fill)"
+        stroke="${flagged?'var(--ok)':accent}" stroke-width="${flagged?2:1.2}"/>
+      <text x="${n.x+n.w/2}" y="${n.y+ry+22}" text-anchor="middle" fill="var(--ink)" font-size="11.5" font-weight="650">${esc(n.label)}</text>
+      <text x="${n.x+n.w/2}" y="${n.y+ry+37}" text-anchor="middle" fill="var(--dim)" font-size="9.5" font-family="ui-monospace,monospace">${esc(n.sub)}</text></g>`;
+  },
+  gate(n,{flagged=false}={}){
+    const c=32,{x,y,w,h}=n;
+    const pts=`${x},${y+h/2} ${x+c},${y} ${x+w-c},${y} ${x+w},${y+h/2} ${x+w-c},${y+h} ${x+c},${y+h}`;
+    return `<g data-node="${n.id}" data-label="${esc(n.label)}" style="cursor:pointer">
+      <polygon points="${pts}" fill="var(--node-fill-alt)" stroke="${flagged?'var(--ok)':'var(--violet)'}" stroke-width="${flagged?2.4:1.8}"/>
+      ${flagged?`<circle cx="${x+w-c/2}" cy="${y+11}" r="4" fill="var(--ok)"/>`:''}
+      <text x="${x+w/2}" y="${y+h/2-2}" text-anchor="middle" fill="var(--ink)" font-size="11.5" font-weight="650">${esc(n.label)}</text>
+      <text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" fill="var(--dim)" font-size="9.5" font-family="ui-monospace,monospace">${esc(n.sub)}</text></g>`;
+  },
+  /* midY overrides the halfway default. Use it when the horizontal run would
+     cross another node — nodes draw after edges, so the edge vanishes behind
+     the box and reads as a missing connection rather than a layout bug. */
+  edgeDown(A,B,{color,dash,label,midY}={}){
+    const x1=A.x+A.w/2,y1=A.y+A.h,x2=B.x+B.w/2,y2=B.y,my=midY??(y1+y2)/2,r=9;
+    let d;
+    if(Math.abs(x1-x2)<3) d=`M${x1},${y1} L${x2},${y2}`;
+    else{const s=x2>x1?1:-1;
+      d=`M${x1},${y1} L${x1},${my-r} Q${x1},${my} ${x1+r*s},${my} L${x2-r*s},${my} Q${x2},${my} ${x2},${my+r} L${x2},${y2}`;
+      SH._segs.push({y:my,x1,x2,from:A.id,to:B.id});}
+    return SH.path(d,color,dash,label,(x1+x2)/2,my);
+  },
+  edgeAcross(A,B,{color,dash,label}={}){
+    const right=B.x>A.x, x1=right?A.x+A.w:A.x, x2=right?B.x:B.x+B.w;
+    /* If the two boxes overlap horizontally, the "across" run doubles back:
+       the first segment hides inside A, and the arrowhead lands pointing away
+       from B. Fall back to a vertical route, which is always well-formed. */
+    if((right && x2<x1) || (!right && x2>x1)) return SH.edgeDown(A,B,{color,dash,label});
+    const y1=A.y+A.h/2,y2=B.y+B.h/2,mx=(x1+x2)/2,r=9;
+    let d;
+    if(Math.abs(y1-y2)<3) d=`M${x1},${y1} L${x2},${y2}`;
+    else{const s=y2>y1?1:-1;
+      d=`M${x1},${y1} L${mx-r},${y1} Q${mx},${y1} ${mx},${y1+r*s} L${mx},${y2-r*s} Q${mx},${y2} ${mx+r},${y2} L${x2},${y2}`;}
+    return SH.path(d,color,dash,label,mx,(y1+y2)/2);
+  },
+  /* Every horizontal run an edge builder emits is recorded here, then checked
+     against the node list once the diagram is assembled. */
+  _segs:[],
+  audit(nodes){
+    SH._segs.forEach(seg=>{
+      nodes.forEach(n=>{
+        if(n.id===seg.from||n.id===seg.to) return;
+        const yHit=n.y<=seg.y&&seg.y<=n.y+n.h;
+        const xHit=!(Math.max(seg.x1,seg.x2)<n.x||Math.min(seg.x1,seg.x2)>n.x+n.w);
+        if(yHit&&xHit) console.warn(`[layout] edge ${seg.from}->${seg.to} runs behind node "${n.id}" at y=${seg.y}; pass a midY that clears it`);
+      });
+    });
+    SH._segs=[];
+  },
+  path:(d,color,dash,label,lx,ly)=>`<path d="${d}" fill="none" stroke="${color}" stroke-width="1.7"
+      ${dash?`stroke-dasharray="${dash}"`:''} marker-end="url(#ar-${color.replace(/[^a-z]/gi,'')})" stroke-linejoin="round"/>
+    ${label?SH.pill(lx,ly,label,color):''}`,
+  pill(cx,cy,text,color){
+    const w=text.length*6.2+12;
+    return `<rect x="${cx-w/2}" y="${cy-9}" width="${w}" height="18" rx="9" fill="var(--panel)"
+        stroke="${color}" stroke-width="1" opacity=".97"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="${color}" font-size="10"
+        font-family="ui-monospace,monospace">${esc(text)}</text>`;
+  },
+  markers:colors=>colors.map(c=>`<marker id="ar-${c.replace(/[^a-z]/gi,'')}" markerWidth="7" markerHeight="6"
+      refX="6.5" refY="3" orient="auto"><polygon points="0 0, 7 3, 0 6" fill="${c}"/></marker>`).join('')
+};
+
+/* ══════════ 4. CONTROLS ══════════ */
+function radioGroup(key,label,hint){
+  const opts=OPTIONS[key].map(o=>{
+    const on=state[key]===o.v;
+    const tag=o.rec?'<span class="tag rec">recommended</span>':o.risk?'<span class="tag risk">risk</span>'
+      :o.story?'<span class="tag story">story says</span>':'';
+    return `<label class="opt ${on?'on':''}"><input type="radio" name="${key}" value="${o.v}" ${on?'checked':''}>
+      <span><span class="t">${o.t}${tag}</span><span class="d">${o.d}</span></span></label>`;
+  }).join('');
+  return `<div class="q"><div class="label">${label}</div>${hint?`<div class="hint">${hint}</div>`:''}
+    <div class="opts">${opts}</div></div>`;
+}
+function checkRow(group,key,label,d){
+  const on=state[group][key];
+  return `<label class="opt ${on?'on':''}"><input type="checkbox" data-check="${group}.${key}" ${on?'checked':''}>
+    <span><span class="t">${label}</span>${d?`<span class="d">${d}</span>`:''}</span></label>`;
+}
+function commentsPanel(){
+  const list=state.comments.length
+    ? state.comments.map(c=>`<div class="commentRow"><span class="who">${esc(c.targetLabel)}</span>
+        <span>${esc(c.text)}</span><button class="x" data-del="${c.id}">&#10005;</button></div>`).join('')
+    : `<div class="hint">No comments yet.</div>`;
+  return `<h2 class="sec">Comments (${state.comments.length})</h2>${list}
+    <div class="q" style="margin-top:8px"><textarea id="freeNote" rows="3" placeholder="Add a note…"></textarea>
+    <div style="margin-top:6px"><button class="btn" id="addNote">Add note</button></div></div>`;
+}
+
+const CONTROLS={
+  product:()=>`<h2 class="sec">Presets</h2>
+    <div class="presets"><button data-preset="minimal">Minimal</button><button data-preset="full">Full</button></div>
+    <h2 class="sec">Approach</h2>${radioGroup('approach','What are we actually doing?','Frame this in user terms — no class names.')}
+    <h2 class="sec">Scope</h2>${radioGroup('scope','How much is in this story?')}${commentsPanel()}`,
+  architecture:()=>`<h2 class="sec">Integration</h2>${radioGroup('seam','Where does the new path branch off?')}
+    <h2 class="sec">Annotate</h2><div class="q"><div class="hint">Click any node in the diagram to attach a comment.</div></div>${commentsPanel()}`,
+  design:()=>`<h2 class="sec">Test plan</h2><div class="q"><div class="opts">
+      ${checkRow('tests','unit','Unit')}${checkRow('tests','integration','Integration')}
+      ${checkRow('tests','regression','Characterization / regression','Write this first when touching legacy code.')}
+    </div></div>${commentsPanel()}`,
+  slices:()=>`<h2 class="sec">Slice ladder</h2>
+    <div class="q"><div class="hint">Each slice runs end to end and is demonstrable before the next starts.</div></div>
+    <div class="q"><div class="opts">${Object.entries(SLICES).map(([k,s])=>checkRow('slices',k,s.t)).join('')}</div></div>${commentsPanel()}`
+};
+
+/* ══════════ 5. PREVIEWS ══════════ */
+function previewProduct(){
+  return `<div class="card"><h3>The problem, in end-user language</h3>
+    <p>FILL IN: what the user experiences going wrong. No schemas or class names in this gate.</p>
+    <p><b>Success:</b> the observable outcome that means this is done.</p></div>
+  <div class="note info"><b>Evidence.</b> FILL IN what research established — traffic, consumers, flag state,
+  whether the code path is even live. A playground rendering a stale assumption just makes the wrong thing persuasive.</div>`;
+}
+function previewArchitecture(){
+  const seamNode={controller:'ctl',service:'svc','per-item':'loop'}[state.seam];
+  const C={flow:'var(--faint)',decide:'var(--violet)',neu:'var(--accent)',old:'var(--alt)'};
+  const N={
+    client:{id:'client',label:'Caller',sub:'who calls this',x:120,y:44,w:170,h:50},
+    ctl:{id:'ctl',label:'Controller',sub:'METHOD /path',x:340,y:44,w:290,h:50},
+    svc:{id:'svc',label:'Service',sub:'file:line',x:120,y:150,w:290,h:50},
+    loop:{id:'loop',label:'inner loop / branch',sub:'per-item handling',x:150,y:236,w:230,h:46},
+    gate:{id:'gate',label:'Routing decision',sub:'feature flag',x:490,y:152,w:250,h:56},
+    old:{id:'old',label:'Existing path',sub:'legacy service',x:120,y:330,w:290,h:50},
+    neu:{id:'neu',label:'New path',sub:'new service',x:490,y:330,w:290,h:50},
+    storeA:{id:'storeA',label:'Store A',sub:'existing',x:150,y:440,w:180,h:66},
+    storeB:{id:'storeB',label:'Store B',sub:'authoritative',x:560,y:440,w:180,h:66}
+  };
+  const edges=[
+    SH.edgeAcross(N.client,N.ctl,{color:C.flow}),
+    SH.edgeDown(N.ctl,N.svc,{color:C.flow}),
+    SH.edgeDown(N.svc,N.loop,{color:C.flow,label:'each'}),
+    SH.edgeAcross(N[seamNode],N.gate,{color:C.decide,dash:'6,4',label:'seam'}),
+    // midY:306 clears the loop node (y236–282); the halfway default would
+    // route this straight through it. See occludes() below.
+    SH.edgeDown(N.gate,N.old,{color:C.old,label:'flag off',midY:306}),
+    SH.edgeDown(N.gate,N.neu,{color:C.neu,label:'flag on',midY:306}),
+    SH.edgeDown(N.old,N.storeA,{color:C.old,label:'write'}),
+    SH.edgeDown(N.neu,N.storeB,{color:C.neu,label:'write'})
+  ].join('');
+  const has=id=>state.comments.some(c=>c.target===id);
+  const nodes=[
+    SH.service(N.client,{flagged:has('client')}),
+    SH.service(N.ctl,{accent:C.old,seam:seamNode==='ctl',flagged:has('ctl')}),
+    SH.service(N.svc,{accent:C.old,seam:seamNode==='svc',flagged:has('svc')}),
+    SH.service(N.loop,{seam:seamNode==='loop',flagged:has('loop')}),
+    SH.gate(N.gate,{flagged:has('gate')}),
+    SH.service(N.old,{accent:C.old,flagged:has('old')}),
+    SH.service(N.neu,{accent:C.neu,flagged:has('neu')}),
+    SH.store(N.storeA,{accent:C.old,flagged:has('storeA')}),
+    SH.store(N.storeB,{accent:'var(--ok)',flagged:has('storeB')})
+  ].join('');
+  const lanes=[SH.lane(96,26,700,86,'entry'),SH.lane(96,124,700,170,'routing decision'),
+               SH.lane(96,316,700,80,'paths'),SH.lane(96,420,700,104,'stores')].join('');
+
+  /* Layout guard. Runs unconditionally — a check behind a hash fragment nobody
+     types is a comment that looks like a check. Segments are collected by the
+     edge builders themselves, so edges added later are audited automatically
+     rather than drifting out of a hardcoded list. */
+  SH.audit(Object.values(N));
+
+  return `<div class="diagramWrap">
+    <svg viewBox="0 0 820 546" width="820" height="546">
+      <defs>${SH.markers(Object.values(C))}</defs>${lanes}${edges}${nodes}</svg>
+    <div class="legend">
+      <span><i style="border-color:var(--faint)"></i>request flow</span>
+      <span><i style="border-color:var(--violet);border-top-style:dashed"></i>the seam</span>
+      <span><i style="border-color:var(--accent)"></i>new path</span>
+      <span><i style="border-color:var(--alt)"></i>existing path</span>
+    </div></div>
+  <div class="card"><h3>Call flow</h3><p>FILL IN: end-to-end description of the main path, and what gates it.</p></div>`;
+}
+function previewDesign(){
+  const tests=Object.entries(state.tests).filter(([,v])=>v)
+    .map(([k])=>`<li style="margin-bottom:5px">${({unit:'Unit — the seam picks the right path',
+      integration:'Integration — full request with the flag on',
+      regression:'Characterization — flag off is byte-identical to today'})[k]}</li>`).join('');
+  return `<div class="card"><h3>Change point 1 — the seam</h3>
+    <p>${OPTIONS.seam.find(o=>o.v===state.seam).d}</p></div>
+  <pre class="code"><span class="cm">// FILL IN: signatures and shape, bodies omitted</span>
+<span class="kw">public</span> <span class="ty">Result</span> handle(<span class="ty">Request</span> request) {
+<span class="add">    var path = router.choose(FLAG, () -&gt; newPath::apply, () -&gt; legacyPath::apply);</span>
+    <span class="kw">return</span> path.apply(request);
+}</pre>
+  <div class="note"><b>Least confident decisions.</b> FILL IN the calls you want pushed back on —
+  this is the list that makes the gate rejectable.</div>
+  <div class="card"><h3>Test plan</h3>
+    <ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--dim)">${tests||'<li>No tests selected.</li>'}</ul></div>`;
+}
+function previewSlices(){
+  const on=Object.entries(state.slices).filter(([,v])=>v);
+  /* Number by position in the full ladder, not the filtered list. Numbering the
+     filtered list renames "Happy path" to slice 0 the moment the tracer is
+     unchecked, contradicting the tracer-bullet invariant stated right above it. */
+  const order=Object.keys(SLICES);
+  const rows=Object.entries(SLICES).map(([k,s])=>{
+    const active=state.slices[k],idx=order.indexOf(k);
+    return `<div class="slice ${active?'':'off'}" style="border-left-color:${active?'var(--accent)':'var(--line)'}">
+      <span class="num">${active?idx:'—'}</span><span style="flex:1"><span class="t">${s.t}</span>
+      <span class="d">${s.d}</span><span class="prove"><b>Prove it:</b> ${s.p}</span></span></div>`;
+  }).join('');
+  return `<div class="note"><b>Slice 0 is a tracer bullet.</b> Wired end to end, doing nothing real, so the path
+  is observable before any behaviour changes. If it can't be demonstrated, it isn't a vertical slice.</div>${rows}
+  <div class="card"><h3>${on.length} slice${on.length===1?'':'s'} in scope</h3>
+    <p>Stop after any slice and the system is still coherent — that is the test of whether the ladder is vertical.</p></div>`;
+}
+const PREVIEW={product:previewProduct,architecture:previewArchitecture,design:previewDesign,slices:previewSlices};
+
+/* ══════════ 6. PROMPT — a decision record, not a settings dump ══════════ */
+function updatePrompt(){
+  const L=[];
+  L.push('TICKET-000 — design decisions from the playground. Treat these as agreed, not as suggestions.','');
+
+  /* A chosen option carries its tag into the prompt. Silently obeying a risky
+     pick makes the prompt a settings dump; naming the risk keeps it a record. */
+  const decide=(key)=>{
+    const o=OPTIONS[key].find(x=>x.v===state[key]);
+    const flag=o.risk?' [ACCEPTED RISK — name why this was chosen]'
+              :o.story?' [chosen against the ticket’s own instruction]':'';
+    return `${o.t}${flag} — ${o.d.replace(/<[^>]+>/g,'')}`;
+  };
+
+  L.push('## Gate 1 — Product');
+  L.push(`Approach: ${decide('approach')}`);
+  L.push(`Scope: ${decide('scope')}`);
+  if(EVIDENCE.length){
+    L.push('Evidence this design rests on:');
+    EVIDENCE.forEach(e=>L.push(`- ${e}`));
+  }
+  L.push('');
+  L.push('## Gate 2 — Architecture');
+  L.push(`Seam: ${decide('seam')}`,'');
+  L.push('## Gate 3 — Program Design');
+  const t=Object.entries(state.tests).filter(([,v])=>v).map(([k])=>k);
+  if(t.length) L.push(`Tests (TDD, red first): ${t.join(', ')}.`);
+  L.push('');
+  L.push('## Gate 4 — Vertical slices');
+  const order=Object.keys(SLICES);
+  Object.entries(state.slices).filter(([,v])=>v).forEach(([k])=>
+    L.push(`${order.indexOf(k)}. ${SLICES[k].t} — ${SLICES[k].d} Prove it: ${SLICES[k].p}`));
+  L.push('Within each slice: API contract with mocks first, then frontend against the mocks, then real services, then any migration.');
+  L.push('Ship one slice at a time. Demonstrate each before starting the next.');
+  if(state.comments.length){
+    L.push('','## Notes attached in the playground');
+    state.comments.forEach(c=>L.push(`- ${c.targetLabel}: ${c.text}`));
+  }
+  document.getElementById('promptOut').textContent=L.join('\n');
+}
+
+/* ══════════ 7. PLUMBING ══════════ */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function clip(s,n){return s.length>n?s.slice(0,n-1)+'…':s}
+
+function renderAll(){
+  /* Preserve an in-progress note: #controls is rebuilt wholesale, so a
+     half-typed draft would otherwise vanish on any click that re-renders. */
+  const draftEl=document.getElementById('freeNote');
+  const draft=draftEl?draftEl.value:'';
+  saveState();
+  document.getElementById('gates').innerHTML=GATES.map(g=>
+    `<button data-gate="${g.id}" class="${state.gate===g.id?'on':''}"><span class="n">${g.n}</span>${g.label}</button>`).join('');
+  document.getElementById('controls').innerHTML=CONTROLS[state.gate]();
+  document.getElementById('preview').innerHTML=PREVIEW[state.gate]();
+  const restored=document.getElementById('freeNote');
+  if(restored && draft) restored.value=draft;
+  document.getElementById('stateBadge').textContent=
+    `${state.approach} · ${state.seam} · ${Object.values(state.slices).filter(Boolean).length} slices`;
+  updatePrompt();
+}
+
+const PRESETS={
+  minimal:{approach:'option-a',seam:'service',scope:'minimal',slices:{s0:true,s1:true,s2:true,s3:false}},
+  full:{approach:'option-b',seam:'service',scope:'full',slices:{s0:true,s1:true,s2:true,s3:true}}
+};
+
+document.addEventListener('click',e=>{
+  if(e.target.id==='resetBtn'){
+    if(window.confirm('Discard all saved decisions and comments for this ticket?')) resetState();
+    return;
+  }
+  const g=e.target.closest('[data-gate]'); if(g){state.gate=g.dataset.gate;renderAll();return;}
+  const p=e.target.closest('[data-preset]'); if(p){Object.assign(state,structuredClone(PRESETS[p.dataset.preset]));renderAll();return;}
+  const d=e.target.closest('[data-del]');
+  if(d){state.comments=state.comments.filter(c=>String(c.id)!==d.dataset.del);renderAll();return;}
+  if(e.target.id==='addNote'){const ta=document.getElementById('freeNote');
+    if(ta&&ta.value.trim()){state.comments.push({id:Date.now(),target:'general',targetLabel:'General',text:ta.value.trim()});renderAll();}return;}
+  const n=e.target.closest('[data-node]');
+  if(n){const t=window.prompt(`Comment on ${n.dataset.label}:`);
+    if(t&&t.trim()){state.comments.push({id:Date.now(),target:n.dataset.node,targetLabel:n.dataset.label,text:t.trim()});renderAll();}}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.type==='radio'){state[t.name]=t.value;renderAll();return;}
+  if(t.dataset.check){const[g,k]=t.dataset.check.split('.');state[g][k]=t.checked;renderAll();}
+});
+document.getElementById('copyBtn').addEventListener('click',async()=>{
+  const b=document.getElementById('copyBtn');
+  try{await navigator.clipboard.writeText(document.getElementById('promptOut').textContent);
+    b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Prompt',1200);}
+  catch{b.textContent='Copy failed';setTimeout(()=>b.textContent='Copy Prompt',1500);}
+});
+const themeBtn=document.getElementById('themeBtn');
+function applyTheme(t){document.documentElement.dataset.theme=t;themeBtn.textContent=t==='dark'?'Light':'Dark';
+  try{localStorage.setItem('pg-theme',t);}catch{}}
+themeBtn.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+applyTheme((()=>{try{return localStorage.getItem('pg-theme')||'light';}catch{return 'light';}})());
+
+renderAll();
+</script>
+</body>
+</html>

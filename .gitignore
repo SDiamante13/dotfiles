@@ -52,6 +52,7 @@ claude/daemon-auth-cooldown
 claude/policy-limits.json
 claude/remote-settings.json
 claude/han/
+claude/logs/
 .serena/
 
 # Skill eval workspaces (generated artifacts)
