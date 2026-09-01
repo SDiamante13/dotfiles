@@ -3,10 +3,6 @@
 ALWAYS start your answers with a STARTER_SYMBOL
 The default STARTER_SYMBOL is ☀️
 
-## Drive Platform Context
-Team context lives in `~/Dev/context/team/` — services, domain, tools, standards, operations, ui-ux, devops.
-See `~/Dev/context/team/CLAUDE.md` for a full map of what's in each file.
-
 - Be proactive and flag issues before they become a problem
 - When reporting information to me, be extremely concise and sacrifice grammar for the sake of concision
 - Write readable and expressive code that does not need redundant comments or reasoning why something changed
@@ -20,19 +16,6 @@ See `~/Dev/context/team/CLAUDE.md` for a full map of what's in each file.
 - Refactoring approach: "Make the change easy, then make the easy change" (Kent Beck). When adding new integrations, first refactor existing code to be generic (separate commit), then add the feature cleanly.
 - When I give a short or ambiguous request, ask ONE clarifying question immediately rather than guessing. Do not attempt multiple interpretations in sequence.
 
-## Serena MCP
-
-For typed languages (Java, TypeScript, Python, Go, Rust), prefer serena's semantic tools over Grep+Read+Edit when working with symbols:
-- Locating a symbol: `mcp__serena__find_symbol` (not Grep)
-- Understanding a file's structure: `mcp__serena__get_symbols_overview` (not Read whole file)
-- Finding callers/usages: `mcp__serena__find_referencing_symbols` (not Grep)
-- Renaming/rewriting a method or class body: `mcp__serena__replace_symbol_body` or `rename_symbol` (not Edit)
-- Finding interface implementations: `mcp__serena__find_implementations`
-
-Stick with Grep/Read/Edit for: config files, markdown, plain text, free-form searches across non-code, and quick one-line edits where symbol boundaries don't matter.
-
-On first coding task per session in a new repo, call `mcp__serena__initial_instructions` once.
-
 ## Browser Automation
 
 Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
@@ -43,4 +26,15 @@ Core workflow:
 3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
 4. Re-snapshot after page changes
 
-@RTK.md
+## Image Generation
+
+`codex` can generate images. There is no image subcommand or MCP server — the tool is
+built into the model, so invoke it in a prompt:
+
+```bash
+codex exec --skip-git-repo-check --sandbox workspace-write \
+  "Generate an AI image and save it as /abs/path/out.png. Image prompt: <description>"
+```
+
+Output also lands in `~/.codex/generated_images/`. Do not conclude from `codex --help`
+or `codex mcp list` that image generation is unavailable — neither surfaces it.
