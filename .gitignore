@@ -50,6 +50,9 @@ claude/.credentials.json
 claude/daemon-auth-status.json
 claude/daemon-auth-cooldown
 claude/policy-limits.json
+claude/limit-state/
+claude/gh-pr-status-cache.json
+claude/uploads/
 claude/remote-settings.json
 claude/han/
 .serena/
@@ -83,4 +86,6 @@ dist/
 # Backup files
 *.old
 *.backup
+*.bak
+claude/settings.json.pre-*
 .idea/
