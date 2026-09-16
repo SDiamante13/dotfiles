@@ -5642,6 +5642,12 @@ def _call_privacy_model(prompt: str) -> dict:
         payload = json.loads(proc.stdout)
     except json.JSONDecodeError:
         raise RuntimeError(f"the model call returned unparsable output{exited}")
+    # The CLI can answer with a JSON *array* (a transcript) rather than the result object
+    # this reads. Without this the build dies on AttributeError halfway through rendering,
+    # instead of degrading through the RuntimeError path every other failure here uses.
+    if not isinstance(payload, dict):
+        raise RuntimeError(
+            f"the model call returned a JSON {type(payload).__name__}, not a result object{exited}")
     if payload.get("is_error"):
         raise RuntimeError(f"the model call failed: {str(payload.get('result'))[:300]}{exited}")
     out = payload.get("structured_output")
