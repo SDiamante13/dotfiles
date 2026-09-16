@@ -54,8 +54,22 @@ def cache_root() -> Path:
     return Path(base) / "human-review"
 
 
+_resolved: Path | None = None
+
+
 def review_dir(create: bool = False) -> Path:
-    """The directory this run reads and writes. See the module docstring for the order."""
+    """The directory this run reads and writes. See the module docstring for the order.
+
+    Resolved once per process and remembered. One run means one directory, so re-deriving
+    it per call could only ever return the same answer more expensively — and it asks git
+    two questions to do so, which a caller in a loop pays for repeatedly and a test that
+    watches subprocess calls sees as noise it did not make.
+    """
+    global _resolved
+    if _resolved is not None:
+        if create:
+            _resolved.mkdir(parents=True, exist_ok=True)
+        return _resolved
     override = os.environ.get("HUMAN_REVIEW_DIR")
     if override:
         d = Path(override).expanduser()
@@ -66,6 +80,7 @@ def review_dir(create: bool = False) -> Path:
         repo = _slug(Path(top).name if top else Path.cwd().name, "repo")
         branch = _slug(_git("rev-parse", "--abbrev-ref", "HEAD"), "detached")
         d = cache_root() / repo / branch
+    _resolved = d
     if create:
         d.mkdir(parents=True, exist_ok=True)
     return d

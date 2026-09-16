@@ -32,7 +32,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)"
 
-OUT="${1:-$ROOT/.human-review/assets/codecity.png}"
+OUT="${1:-${HUMAN_REVIEW_DIR:-$ROOT/.human-review}/assets/codecity.png}"
 MODE="${2:-highlight}"
 
 # The city html and the playwright install are BOTH project-specific, so neither can be a

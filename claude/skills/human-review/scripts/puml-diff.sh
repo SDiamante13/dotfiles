@@ -47,7 +47,7 @@ cd "$ROOT"
 FOCUS_LEVELS="0 1 2 3"
 
 BASE_REF="${1:-origin/main}"
-OUT_DIR="${2:-.human-review/assets/diagrams}"
+OUT_DIR="${2:-${HUMAN_REVIEW_DIR:-.human-review}/assets/diagrams}"
 
 # The differs ship with the skill, beside this script — they diff any class, ER or
 # sequence diagram and know nothing about the project being reviewed.

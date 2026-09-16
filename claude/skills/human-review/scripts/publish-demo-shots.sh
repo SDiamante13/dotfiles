@@ -14,7 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_REPO="$HOME/workspace/human-review"
-DEFAULT_SRC="./.human-review/review.html"
+DEFAULT_SRC="${HUMAN_REVIEW_DIR:-./.human-review}/review.html"
 VENV="${HUMAN_REVIEW_SHOTS_VENV:-$HOME/.cache/human-review/shots-venv}"
 PAGES_BASE="https://victorrentea.github.io/human-review"
 

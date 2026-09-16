@@ -6,7 +6,7 @@
 # produced it and must not be rewritten here.
 set -euo pipefail
 
-DEFAULT_SRC=".human-review"
+DEFAULT_SRC="${HUMAN_REVIEW_DIR:-.human-review}"
 DEFAULT_REPO="$HOME/workspace/human-review"
 
 usage() {

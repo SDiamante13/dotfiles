@@ -541,7 +541,7 @@ def run_step(name, tabs, label, prereq, fn, ctx: Ctx) -> dict:
         print(f"  - {name}: skipped ({reason})")
         return {"step": name, "tabs": tabs, "status": SKIPPED, "reason": reason}
 
-    handle = Path(f".human-review/.step-{name}")
+    handle = hr_paths.review_dir(create=True) / f".step-{name}"
     idx = None
     if tabs and not ctx.dry:
         idx = subprocess.run([sys.executable, str(LEDGER), "start", tabs, "--label", label],
@@ -606,7 +606,7 @@ def main(argv=None) -> int:
             continue
         results.append(run_step(name, tabs, label, prereq, fn, ctx))
 
-    status_path = Path(".human-review/.steps-status.json")
+    status_path = hr_paths.review_dir(create=True) / ".steps-status.json"
     if not args.dry_run:
         status_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
 

@@ -156,7 +156,7 @@ PY
 CARD_TITLE="${HUMAN_REVIEW_VIDEO_TITLE:-Demo}"
 CARD_SUBTITLE="${HUMAN_REVIEW_VIDEO_SUBTITLE:-}"
 if [ -z "$CARD_SUBTITLE" ]; then
-  CARD_SUBTITLE="$(python3 -c "$TITLE_FROM_GUIDE" "$ROOT/.human-review/content.json" 2>/dev/null || true)"
+  CARD_SUBTITLE="$(python3 -c "$TITLE_FROM_GUIDE" "${HUMAN_REVIEW_DIR:-$ROOT/.human-review}/content.json" 2>/dev/null || true)"
 fi
 if [ -z "$CARD_SUBTITLE" ]; then
   CARD_SUBTITLE="$(gh pr view --json title --jq .title 2>/dev/null || true)"

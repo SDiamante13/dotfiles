@@ -66,6 +66,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import hr_paths
+
 # The report is one self-contained HTML file with its own data zipped, base64'd and parked
 # in a <template> the app deletes from the DOM as soon as it has read it. That is a private
 # arrangement between the reporter and its own viewer, so it is pinned here by a test with a
@@ -303,7 +305,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--report", required=True, help="the Playwright HTML report directory")
-    ap.add_argument("--out", default=".human-review/assets",
+    ap.add_argument("--out", default=str(hr_paths.assets_dir()),
                     help="where the zips and the viewer are copied")
     ap.add_argument("--prefix", default="assets",
                     help="how the page addresses --out (default: assets)")
