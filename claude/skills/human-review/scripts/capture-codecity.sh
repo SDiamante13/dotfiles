@@ -35,11 +35,27 @@ ROOT="$(git rev-parse --show-toplevel)"
 OUT="${1:-$ROOT/.human-review/assets/codecity.png}"
 MODE="${2:-highlight}"
 
-CITY="$ROOT/petclinic-backend/docs/generated/codecity/codecity.html"
-NODE_PATHS="$ROOT/petclinic-test/node_modules"
+# The city html and the playwright install are BOTH project-specific, so neither can be a
+# path in this script. `city.out` in human-review.json is where regenerate-codecity.sh was
+# told to write, and it is what run-steps.py passes here as $3; CODECITY_HTML overrides for
+# a city generated some other way. Falling back to a literal petclinic path meant this step
+# could only ever run inside the project the skill was extracted from.
+CITY="${3:-${CODECITY_HTML:-}}"
+if [ -z "$CITY" ]; then
+  for guess in "$ROOT/docs/generated/codecity/codecity.html" "$ROOT/.codecity/codecity.html"; do
+    [ -f "$guess" ] && { CITY="$guess"; break; }
+  done
+fi
+case "$CITY" in /*) ;; *) [ -n "$CITY" ] && CITY="$ROOT/$CITY" ;; esac
+[ -d "$CITY" ] && CITY="$CITY/codecity.html"
 
-[ -f "$CITY" ] || { echo "[codecity] $CITY missing — run petclinic-backend/docs/generate-codecity.sh" >&2; exit 2; }
-[ -d "$NODE_PATHS/playwright" ] || { echo "[codecity] playwright not installed (cd petclinic-test && npm install)" >&2; exit 2; }
+# playwright is resolved through NODE_PATH, so a global install answers `require` just as
+# well as a project-local one; npm root -g is the portable way to find it.
+NODE_PATHS="${CODECITY_NODE_PATH:-$(npm root -g 2>/dev/null)}"
+
+[ -n "$CITY" ] && [ -f "$CITY" ] || {
+  echo "[codecity] no codecity.html (looked at '${CITY:-<unset>}') — set steps.city.out in human-review.json, or CODECITY_HTML" >&2; exit 2; }
+[ -d "$NODE_PATHS/playwright" ] || { echo "[codecity] playwright not found under $NODE_PATHS — npm install -g playwright, or set CODECITY_NODE_PATH" >&2; exit 2; }
 
 mkdir -p "$(dirname "$OUT")"
 

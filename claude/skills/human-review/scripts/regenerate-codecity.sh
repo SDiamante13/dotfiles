@@ -48,7 +48,11 @@ done
 
 REPO="$(cd "${REPO:-$(git rev-parse --show-toplevel)}" && pwd)"
 TOOL_URL="${CODECITY_TOOL_URL:-https://github.com/victorrentea/code-city.git}"
-TOOL_DIR="${CODECITY_TOOL_DIR:-$REPO/.human-review/.tools/codecity}"
+# The generators are a clone of somebody else's repository, and cloning it *inside* the
+# repository under review put a second git checkout in a working tree the reviewer usually
+# does not own. It is also the same clone for every project, so a shared cache both keeps
+# it out of the tree and stops each repo re-downloading it.
+TOOL_DIR="${CODECITY_TOOL_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/human-review/tools/codecity}"
 
 if [ ! -d "$TOOL_DIR/.git" ]; then
   echo "cloning the Code City generators into $TOOL_DIR ..."

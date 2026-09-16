@@ -52,7 +52,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-DEFAULT_PATH = ".human-review/.steps.json"
+import hr_paths
+
+DEFAULT_PATH = str(hr_paths.review_dir() / ".steps.json")
 
 # A reserved tab id that is deliberately not a tab: Step 9 stamps its own assembly of
 # `content.json` against it, so the biggest unattributable chunk of a run gets a name instead
@@ -275,7 +277,7 @@ def main(argv=None) -> int:
 
     p_check = sub.add_parser(
         "check", help="fail if the ledger names a tab content.json does not have")
-    p_check.add_argument("--content", default=".human-review/content.json",
+    p_check.add_argument("--content", default=str(hr_paths.review_dir() / "content.json"),
                          help="the content file whose tabs[].id list is the truth")
 
     args = ap.parse_args(argv)

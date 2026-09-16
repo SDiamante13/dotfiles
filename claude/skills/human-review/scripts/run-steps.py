@@ -44,7 +44,9 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ART = Path(".human-review/assets")
+import hr_paths
+
+ART = hr_paths.assets_dir()
 LEDGER = HERE / "steps-ledger.py"
 
 RAN, SKIPPED, FAILED = "ran", "skipped", "failed"
@@ -186,7 +188,11 @@ def _city(ctx: Ctx):
         acceptance = f' --acceptance "{city["acceptance"]}"' if city.get("acceptance") else ""
         sh(f'{HERE}/regenerate-codecity.sh --out "{out}" '
            f'--title "{city.get("title", "Code City")}"{baseline}{acceptance}', ctx, check=False)
-    r = sh(f"{HERE}/capture-codecity.sh {ART}/codecity.png highlight", ctx, capture=True)
+    # Hand the capture the same directory regenerate was told to write to, so the two
+    # halves of this step cannot disagree about where the city landed.
+    where = city.get("html") or (f"{out}/codecity.html" if out else "")
+    r = sh(f"{HERE}/capture-codecity.sh {ART}/codecity.png highlight {where}".rstrip(),
+           ctx, capture=True)
     lit = (r.stdout or "").strip().splitlines()
     if lit:
         ctx.notes.append(f"codecity lit: {lit[-1]} (put this measured number under the "

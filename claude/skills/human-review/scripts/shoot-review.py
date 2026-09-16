@@ -25,6 +25,8 @@ import time
 import sys
 from pathlib import Path
 
+import hr_paths
+
 VIEWPORT_WIDTH = 1440
 VIEWPORT_HEIGHT = 900
 DEVICE_SCALE = 2
@@ -431,7 +433,7 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
-        "source", nargs="?", default=".human-review",
+        "source", nargs="?", default=str(hr_paths.review_dir()),
         help="review.html, or the directory holding it (default: .human-review)",
     )
     parser.add_argument("--out", required=False, help="output directory (created/replaced)")

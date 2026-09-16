@@ -34,6 +34,8 @@ import tempfile
 import urllib.parse
 from pathlib import Path
 
+import hr_paths
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import code_xref  # noqa: E402 - resolved from next to this file, not from site-packages
@@ -5666,6 +5668,10 @@ def _call_privacy_model(prompt: str) -> dict:
 
 
 def _verdict_cache_path(root: Path) -> Path:
+    # `root` here is `cache_root`, which callers override deliberately: a test gets its own
+    # file rather than sharing the real one, and sharing it would let a verdict cached by
+    # one run decide another's. Production now passes the run's scratch directory, so the
+    # segment below nests inside that rather than landing in the reviewed checkout.
     return root / ".human-review" / ".privacy-verdicts.json"
 
 
@@ -5910,7 +5916,10 @@ def _logging_listing(added: list, root: Path, fields_by_file: dict | None = None
     if not added:
         return ('<p class="lede"><b>None.</b> Not one logging statement was added or '
                 'changed on the lines this change set touches.</p>')
-    cache_root = cache_root or root
+    # Default to the run's own scratch directory rather than the reviewed checkout: the
+    # verdict cache is this run's working state, and writing it into somebody else's
+    # working tree is what the rest of the run stopped doing.
+    cache_root = cache_root or hr_paths.review_dir(create=True)
     fields_by_file = fields_by_file or {}
     cache = _load_verdict_cache(cache_root)
     boxes = []

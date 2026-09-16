@@ -49,7 +49,9 @@ import sys
 import time
 from pathlib import Path
 
-HR = Path(".human-review")
+import hr_paths
+
+HR = hr_paths.review_dir()
 
 
 def run(cmd: str, capture=True, check=False) -> subprocess.CompletedProcess:

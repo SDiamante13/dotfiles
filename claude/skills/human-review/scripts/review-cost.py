@@ -39,6 +39,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import hr_paths
+
 PROJECTS = Path(os.path.expanduser("~/.claude/projects"))
 
 # $ per 1M tokens: (input, output). Cache write is 1.25x input (5m TTL) / 2x (1h),
@@ -694,7 +696,7 @@ def main(argv=None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--session", default=os.environ.get("CLAUDE_CODE_SESSION_ID"),
                     help="session id (default: $CLAUDE_CODE_SESSION_ID)")
-    ap.add_argument("--since-file", default=".human-review/.started",
+    ap.add_argument("--since-file", default=str(hr_paths.review_dir() / ".started"),
                     help="file whose contents are an ISO timestamp marking the run's start")
     ap.add_argument("--since", help="ISO timestamp, overriding --since-file")
     ap.add_argument("--chip", action="store_true", help="emit the scope chip as JSON")
@@ -704,7 +706,7 @@ def main(argv=None) -> int:
     ap.add_argument("--tab-costs", action="store_true",
                     help="emit a cost report per tab (needs --tabs) as JSON")
     ap.add_argument("--tabs", help="comma-separated tab ids to report on, with --tab-costs")
-    ap.add_argument("--steps-file", default=".human-review/.steps.json",
+    ap.add_argument("--steps-file", default=str(hr_paths.review_dir() / ".steps.json"),
                     help="the start/end ledger steps-ledger.py writes")
     ap.add_argument("--ledger", action="store_true",
                     help="emit the whole bill — writing the code, the review passes, "

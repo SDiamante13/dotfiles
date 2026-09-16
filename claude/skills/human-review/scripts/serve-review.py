@@ -39,6 +39,8 @@ Usage:
 import argparse, collections, functools, http.server, json, os, re, secrets, shlex, shutil, socket, socketserver, subprocess, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
 
+import hr_paths
+
 MARKER = "/__human_review__"
 OPEN = "/__open__"
 OPEN_DIFF = "/__open_diff__"
@@ -857,7 +859,7 @@ def serve(directory, port, idle_minutes):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("directory", nargs="?", default=".human-review")
+    ap.add_argument("directory", nargs="?", default=str(hr_paths.review_dir()))
     ap.add_argument("--port", type=int, default=7654,
                     help="fixed by default so the URL is the same one every run, and so a "
                          "workbench.externalUriOpeners entry can name it (default: 7654)")
