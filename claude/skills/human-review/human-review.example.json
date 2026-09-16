@@ -1,0 +1,116 @@
+{
+  "//": "Copy to `human-review.json` at your repo root. Every step this file does not",
+  "//2": "describe is skipped and named under the strip, which is the honest rendering of",
+  "//3": "'this project has no such thing'. Nothing here is required.",
+
+  "base": "origin/main",
+  "spec": "openapi.yaml",
+
+  "steps": {
+    "diagrams": {
+      "drawio": {
+        "diagram": "petclinic-backend/docs/ConceptualModel.drawio.png",
+        "concepts": "petclinic-backend/docs/generated/DomainModel.puml",
+        "name": "conceptual"
+      }
+    },
+    "sequence": {
+      "commands": [
+        "cd petclinic-test && ./run-tests-with-tracing.sh",
+        "cd petclinic-backend && mvn -o -Pgenseq test -Dgroups=genseq",
+        "cd petclinic-test && GENSEQ_REFRESH=1 npm run trace:diagram"
+      ]
+    },
+    "city": {
+      "//": "`tests` runs before the city is drawn: its CRAP and coverage colours need a",
+      "//2": "JaCoCo report, and -Dmaven.test.failure.ignore=true is what makes the report",
+      "//3": "goal run at all when a test fails. Without it Maven aborts in the test phase",
+      "//4": "and the city is coloured from whatever stale report was left on disk.",
+      "//5": "`baseline` is the coverage the default branch measured and committed; the",
+      "//6": "page reads it out of git at the diff's base ref to draw the before/after of",
+      "//7": "coverage and CRAP, with no second checkout and no second test run. Refresh it",
+      "//8": "only on the default branch: regenerate-codecity.sh --write-baseline.",
+      "//9": "`tests` may be a list: measuring a browser suite separately takes the unit",
+      "//10": "run, the acceptance run against a separately started app, and a merge of",
+      "//11": "their two .exec files into the two reports the city colours by.",
+      "tests": [
+        "cd petclinic-backend && mvn -o test -Dmaven.test.failure.ignore=true",
+        "cd petclinic-test && JACOCO_E2E=1 PW_TRACE=on npm test",
+        "cd petclinic-backend && mvn -o -q jacoco:merge@merge-all jacoco:report@report-all jacoco:report@report-acceptance"
+      ],
+      "out": "petclinic-backend/docs/generated/codecity",
+      "title": "Code City",
+      "acceptance": "petclinic-backend/target/site/jacoco-acceptance/jacoco.xml",
+      "baseline": "petclinic-backend/docs/generated/codecity/coverage-baseline.tsv"
+    },
+    "traces": {
+      "//": "Playwright's own recordings of the run, carried onto the page so a reviewer",
+      "//2": "can step through what each test did — every action with the page either side",
+      "//3": "of it, the console and the network — without checking the branch out.",
+      "//4": "`report` is the html reporter's output directory. Nothing is run from here:",
+      "//5": "the suite `city.tests` already ran is the one harvested, which is why that",
+      "//6": "command turns tracing ON (PW_TRACE=on above, read by playwright.config.ts).",
+      "//7": "A project with no other run to attach to puts its own `commands` here.",
+      "//8": "`limit` caps how many travel with the page, failures first — they are",
+      "//9": "megabytes each and the page is offered as a downloadable zip. What is left",
+      "//10": "behind is counted on the page rather than quietly dropped.",
+      "//11": "`cucumber`: scenarios run by cucumber-js, which writes no Playwright report.",
+      "//12": "The project's own hooks record one zip + sidecar JSON per scenario there",
+      "//13": "(see reference/content-schema.md, traces); leave it out if there are none.",
+      "report": "petclinic-test/test-results/playwright-report",
+      "cucumber": "petclinic-test/test-results/cucumber-traces",
+      "projectDir": "petclinic-test",
+      "limit": 12
+    },
+    "video": {
+      "out": ".human-review/assets/feature.webm"
+    },
+    "//complexity": [
+      "Nothing to configure: with no `complexity` key at all, the step reads both sides",
+      "itself out of the Java sources (endpoint-complexity.py), the baseline straight from",
+      "the merge-base. Configure it only to override that with a measurement the project",
+      "already makes — `extract` is a command that writes the two snapshots, `before` and",
+      "`after` are where they land, in the schema endpoint-complexity-delta.py reads:",
+      "[{kind, httpMethod, path, handler, flowCc, flow:[{method, cognitive}]}, ...]."
+    ],
+    "logging": {
+      "paths": ["petclinic-backend"]
+    },
+    "dsaudit": {
+      "//": "Two RUNNING builds, served side by side: this branch at base-new, the base",
+      "//2": "branch at base-old. run-steps.py probes both before it starts the browser;",
+      "//3": "if either does not answer, the step is skipped with the URL in the reason",
+      "//4": "and the UX tab is named under the strip — start both and re-run --only dsaudit.",
+      "base-new": "http://localhost:4300",
+      "base-old": "http://localhost:4301",
+      "label-old": "main",
+      "source": ["petclinic-frontend/src"],
+      "//screens": "EVERY screen of the app, deep-linked to a seeded row, not the ones",
+      "//screens2": "somebody guessed the branch touched. The audit shoots them all and",
+      "//screens3": "draws only those whose DOM changed; the rest are named in one line.",
+      "//screens4": "run-steps.py follows every changed component to its route and flags,",
+      "//screens5": "in red on the page, any route this list does not reach.",
+      "screens": {
+        "Welcome": "welcome",
+        "Owners": "owners",
+        "Add an owner": "owners/add",
+        "Owner details": "owners/8",
+        "Edit an owner": "owners/8/edit",
+        "Add a pet": "owners/8/pets/add",
+        "Pets": "pets",
+        "Edit a pet": "pets/11/edit",
+        "Book a visit": "pets/11/visits/add",
+        "Visits": "visits",
+        "Edit a visit": "visits/1/edit",
+        "Pet types": "pettypes",
+        "Add a pet type": "pettypes/add",
+        "Edit a pet type": "pettypes/1/edit",
+        "Specialties": "specialties",
+        "Edit a specialty": "specialties/1/edit",
+        "Vets": "vets",
+        "Add a vet": "vets/add",
+        "Edit a vet": "vets/1/edit"
+      }
+    }
+  }
+}

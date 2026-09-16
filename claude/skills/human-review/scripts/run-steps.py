@@ -1,0 +1,623 @@
+#!/usr/bin/env python3
+"""Run every deterministic producer of the review page, in order, ledger-wrapped.
+
+This is the part of `/human-review` that was a runbook and should never have been one.
+Steps 2-8 are programs with fixed arguments, a fixed order, a prerequisite each, and a
+ledger record each; a model reading three hundred lines of prose and retyping those calls
+adds nothing but the chance of getting one wrong. What is left for a model is the part a
+program cannot do: deciding what the findings mean and writing them down.
+
+The ledger invariants live here now, as code rather than as rules somebody has to follow:
+
+  * **the prerequisite is checked before the stamp.** A gate that fails after the stamp
+    leaves a record naming a tab the page will not contain, which the build then reports as
+    drift. `_prereq` runs first, and a step that fails it is never stamped at all;
+  * **a step that is stamped is always closed**, including one that crashes — the `end` is
+    in a `finally`. An open record makes the page say a step died when the runbook simply
+    never said to close it;
+  * **one handle file per step**, named after the step, so two steps in flight cannot
+    overwrite each other's index.
+
+Project-specific commands come from `human-review.json` at the repo root — see
+`human-review.example.json`. A step the config does not describe is skipped and named,
+which is the honest rendering of "this project has no such thing"; nothing here is
+petclinic-specific.
+
+Usage:
+  run-steps.py --list                     # the steps, their tabs and their prerequisites
+  run-steps.py                            # run all of them
+  run-steps.py --only api,logging         # run some
+  run-steps.py --skip video               # run the rest
+  run-steps.py --base origin/main --json  # machine-readable status
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import re
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ART = Path(".human-review/assets")
+LEDGER = HERE / "steps-ledger.py"
+
+RAN, SKIPPED, FAILED = "ran", "skipped", "failed"
+
+
+class Ctx:
+    def __init__(self, base: str, cfg: dict, dry: bool):
+        self.base, self.cfg, self.dry = base, cfg, dry
+        self.notes: list[str] = []
+
+    def step_cfg(self, name: str) -> dict:
+        return (self.cfg.get("steps") or {}).get(name) or {}
+
+
+def sh(cmd, ctx: Ctx, check=True, capture=False) -> subprocess.CompletedProcess:
+    """One command, echoed. A step's commands are shell strings because half of them are
+    the project's own (`cd x && mvn …`), and quoting those into a list buys nothing."""
+    print(f"    $ {cmd}", flush=True)
+    if ctx.dry:
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+    r = subprocess.run(cmd, shell=True, text=True,
+                       stdout=subprocess.PIPE if capture else None,
+                       stderr=subprocess.PIPE if capture else None)
+    if check and r.returncode != 0:
+        raise RuntimeError(f"exit {r.returncode}: {cmd}"
+                           + (f"\n{(r.stderr or '').strip()[:400]}" if capture else ""))
+    return r
+
+
+def have(binary: str) -> bool:
+    return shutil.which(binary) is not None
+
+
+def has_java() -> bool:
+    """Whether this project has Java main sources — asked of the index, not of the disk,
+    so `node_modules` and a build's output cost nothing to walk past."""
+    listed = subprocess.run(["git", "ls-files", "*/src/main/java/*.java", "src/main/java/*.java"],
+                            capture_output=True, text=True)
+    return bool(listed.stdout.strip())
+
+
+def answers(url: str, timeout: float = 3.0) -> bool:
+    """Whether *anything* is serving at `url` — the running-app twin of `have()`.
+
+    Any HTTP status counts, 404 included: a dev server answers every path, and the audit's
+    screens are deep links the front end routes client-side anyway. What this tells apart
+    is "a build is up" from "nobody is listening", which is the only distinction a
+    prerequisite needs — and the one Playwright reports as a 40-line traceback ending in
+    ERR_CONNECTION_REFUSED, three steps too late to say so plainly.
+    """
+    try:
+        urllib.request.urlopen(url, timeout=timeout).close()
+        return True
+    except urllib.error.HTTPError:
+        return True
+    except (urllib.error.URLError, OSError, ValueError):
+        return False
+
+
+def merge_base(ctx: Ctx) -> str:
+    """Where this branch forked, not where the base ref points now.
+
+    Every producer here reads the "before" side out of a commit object, so a base that has
+    moved on since the branch started would report commits that landed on the base as this
+    branch's work.
+    """
+    got = sh(f"git merge-base {ctx.base} HEAD", ctx, capture=True, check=False).stdout.strip()
+    return got or ctx.base
+
+
+# --------------------------------------------------------------------------- steps
+
+def _diagrams(ctx: Ctx):
+    sh(f"{HERE}/puml-diff.sh {ctx.base} {ART}/diagrams", ctx)
+    d = ctx.step_cfg("diagrams").get("drawio")
+    if not d:
+        ctx.notes.append("no drawio diagram configured")
+        return
+    sh(f"{HERE}/drawio-diff.py --base {ctx.base} --diagram {d['diagram']} "
+       f"--concepts {d['concepts']} --out-dir {ART} --name {d.get('name', 'conceptual')}", ctx)
+
+
+def _sequence(ctx: Ctx):
+    for cmd in ctx.step_cfg("sequence").get("commands") or []:
+        sh(cmd, ctx)
+    # A suite that could not start leaves a generated diagram deleted, and the delta then
+    # reports, in the branch's voice, that this branch removed it.
+    r = sh("git status --porcelain -- '*.genseq.puml'", ctx, capture=True)
+    deleted = [l.split(maxsplit=1)[-1] for l in (r.stdout or "").splitlines()
+               if l.strip().startswith("D")]
+    if deleted:
+        ctx.notes.append(f"restored {len(deleted)} diagram(s) a failed suite deleted; "
+                         "say in the guide that the suite could not run")
+        sh("git checkout -- " + " ".join(deleted), ctx, check=False)
+    sh(f"{HERE}/puml-diff.sh {ctx.base} {ART}/diagrams", ctx)
+
+
+def _city(ctx: Ctx):
+    # The city's CRAP and coverage colours are the only thing on this page that cannot be
+    # read off the sources and the git log: they need a coverage report, which needs the
+    # project's tests to have actually run. `city.tests` is where a project says how, and
+    # a project that does not say simply gets a city without those two metrics — the
+    # generator drops them rather than colouring every building "not measured".
+    #
+    # Failures do not stop it. A red suite is a finding for the review to carry, not a
+    # reason to lose the whole city tab, and the coverage of a run with one broken test
+    # is still the coverage of that run. The test command is expected to say so itself
+    # (Maven: -Dmaven.test.failure.ignore=true), because a build that aborts on the first
+    # failure never reaches its report goal and leaves LAST week's report on disk for the
+    # city to be coloured with, which is the one outcome worse than having no colours.
+    # A list, because measuring two suites is several commands that must run in order:
+    # the unit run, the acceptance run against a separately started application, and the
+    # merge that turns their two .exec files into the reports the city reads. A single
+    # string still works for a project with only one of them.
+    tests = ctx.step_cfg("city").get("tests")
+    if isinstance(tests, str):
+        tests = [tests]
+    for cmd in tests or []:
+        r = sh(cmd, ctx, check=False)
+        if r.returncode != 0:
+            ctx.notes.append(f"a suite behind the city's coverage colours did not pass "
+                             f"({cmd}); say so next to the CRAP reading")
+    # Two ways to get the page. `regenerate` is a project's own command, for a project
+    # that has one; `out` hands the job to the script here, which is the arrangement to
+    # prefer — it leaves the analysed repo holding only the DATA (a committed
+    # codecity.html, a committed baseline) and none of the machinery that made it.
+    #
+    # `baseline` names the committed coverage numbers the page compares AGAINST. It is
+    # never written from here: this runs on a branch under review, and refreshing the
+    # baseline with the branch's own coverage would replace the very numbers the
+    # comparison needs. That belongs to a merge into the default branch
+    # (regenerate-codecity.sh --write-baseline), nowhere else.
+    city = ctx.step_cfg("city")
+    regen, out = city.get("regenerate"), city.get("out")
+    if regen:
+        sh(regen, ctx, check=False)
+    elif out:
+        baseline = f' --baseline "{city["baseline"]}"' if city.get("baseline") else ""
+        acceptance = f' --acceptance "{city["acceptance"]}"' if city.get("acceptance") else ""
+        sh(f'{HERE}/regenerate-codecity.sh --out "{out}" '
+           f'--title "{city.get("title", "Code City")}"{baseline}{acceptance}', ctx, check=False)
+    r = sh(f"{HERE}/capture-codecity.sh {ART}/codecity.png highlight", ctx, capture=True)
+    lit = (r.stdout or "").strip().splitlines()
+    if lit:
+        ctx.notes.append(f"codecity lit: {lit[-1]} (put this measured number under the "
+                         "image; never type one)")
+
+
+def _video(ctx: Ctx):
+    out = ctx.step_cfg("video").get("out", f"{ART}/feature.webm")
+    r = sh(f"{HERE}/record-feature-video.sh {out}", ctx, check=False)
+    if r.returncode == 3:
+        ctx.notes.append("EXIT 3 — filmed, and the feature did NOT hold. Embed it and lead "
+                         "the review with what it shows; this is the most valuable film "
+                         "this pipeline can make")
+    elif r.returncode == 2:
+        raise LookupError("no feature script, or the stack is down")
+    elif r.returncode != 0:
+        raise RuntimeError(f"record-feature-video.sh exit {r.returncode}")
+
+
+def _complexity(ctx: Ctx):
+    """Both sides of the entry-point complexity, then the bars between them.
+
+    A project that measures this itself keeps doing so — `complexity.extract` runs, and
+    `before`/`after` name its two snapshots. With nothing configured, the built-in
+    extractor reads both sides out of the Java sources, the baseline straight from the
+    merge-base, and the step needs no build, no plugin and no test in the project."""
+    c = ctx.step_cfg("complexity")
+    if c.get("extract"):
+        sh(c["extract"], ctx)
+    before, after = c.get("before"), c.get("after")
+    if not (before and after):
+        before, after = f"{ART}/complexity-before.json", f"{ART}/complexity-after.json"
+        sh(f"{HERE}/endpoint-complexity.py --base {ctx.base} --out {before}", ctx)
+        sh(f"{HERE}/endpoint-complexity.py --out {after}", ctx)
+    sh(f"{HERE}/endpoint-complexity-delta.py {before} {after} --base {ctx.base} "
+       f"--out {ART}/complexity-delta.html", ctx)
+    sh(f"{HERE}/endpoint-complexity-delta.py --css > {ART}/complexity-delta.css", ctx)
+
+
+def _api(ctx: Ctx):
+    spec = ctx.cfg.get("spec", "openapi.yaml")
+    for cmd in (
+        # `--report` is the openable twin of each fragment, written in the same run so the
+        # two cannot drift. The verdict band links to them by name, and only links to the
+        # ones it can see on disk — so these have to be written before the --panel call.
+        f"{HERE}/openapi-diff.py   --base {ctx.base} --spec {spec} --out {ART}/openapi-diff.html"
+        f" --report {ART}/openapi-diff-report.html",
+        f"{HERE}/openapi-diff.py   --css  >  {ART}/openapi-diff.css",
+        f"{HERE}/openapi-compat.py --base {ctx.base} --spec {spec} --out {ART}/openapi-compat.html"
+        f" --report {ART}/openapi-compat-report.html",
+        f"{HERE}/openapi-compat.py --css  >  {ART}/openapi-compat.css",
+        f"{HERE}/openapi-compat.py --base {ctx.base} --spec {spec} --panel "
+        f"--out {ART}/openapi-verdict.html",
+        f"{HERE}/openapi-visual-diff.py --base {ctx.base} --spec {spec} "
+        f"--out {ART}/openapi-visual-diff.html",
+    ):
+        sh(cmd, ctx)
+    if not have("oasdiff"):
+        ctx.notes.append("no oasdiff — the seal reads COMPATIBLE · PARTIAL LIST in amber "
+                         "and the list is a lower bound. That amber is correct; do not "
+                         "'fix' it in the prose")
+
+
+def _specchanges(ctx: Ctx):
+    spec = ctx.cfg.get("spec", "openapi.yaml")
+    base = merge_base(ctx)
+    sh(f"openapi-changes html-report --no-logo --no-explorer "
+       f"--report-file {ART}/openapi-changes.html '{base}:{spec}' ./{spec}", ctx)
+
+
+def _logging(ctx: Ctx):
+    paths = ctx.step_cfg("logging").get("paths") or []
+    if not paths:
+        raise LookupError("logging.paths not configured")
+    base = merge_base(ctx)
+    sh(f"{HERE}/logextract.py {' '.join(paths)} --repo . --since {base} "
+       f"--json {ART}/logging.json", ctx)
+
+
+# ── which screens did the branch change? ──────────────────────────────────────────
+#
+# The audit's `screens` used to be two entries somebody guessed the branch touched, copied
+# from the example, and the one screen that mattered ("Edit a visit", changed by the
+# branch) was not among them. Nothing looked at the diff. Now `screens` is the whole
+# app's catalogue, the audit draws only the ones whose DOM changed, and the runner does the
+# one check the audit cannot: it reads the diff for changed Angular components, follows
+# them to their routes, and shouts about any route the catalogue does not reach.
+
+ROUTE_TOKEN = re.compile(
+    r"""(?P<open>\{)|(?P<close>\})|(?P<path>\bpath\s*:\s*(['"`])(?P<p>.*?)\4)"""
+    r"""|(?P<comp>\bcomponent\s*:\s*(?P<c>[A-Za-z_]\w*))|(?P<children>\bchildren\s*:)"""
+    r"""|(?P<comment>//[^\n]*|/\*.*?\*/)""", re.S)
+
+
+def angular_routes(text: str) -> list[tuple[str, str]]:
+    """`(route pattern, component class)` pairs out of one routing source, nested children
+    joined onto their parent's path. A stack of open `{`s, not a TypeScript parser: each
+    route object records its own `path:` and `component:`, and a `children:` array under
+    it opens objects whose paths are prefixed with its own. Comments are skipped so a
+    route somebody commented out is not a route."""
+    out, stack = [], []          # one entry per open `{`: {"path", "full", "component"}
+    for m in ROUTE_TOKEN.finditer(text):
+        if m["comment"]:
+            continue
+        if m["open"]:
+            # A child opened under a route inherits that route's full path; an object
+            # opened before its parent's `path:` (or a `resolve: {…}`) inherits the
+            # grandparent's, which is the right answer for both.
+            stack.append({"path": None, "component": None,
+                          "full": stack[-1]["full"] if stack else ""})
+        elif m["close"]:
+            if not stack:
+                continue
+            r = stack.pop()
+            if r["component"] and r["path"] is not None:
+                out.append((r["full"], r["component"]))
+        elif m["path"] is not None and stack:
+            r = stack[-1]
+            r["path"] = m["p"].replace("\\/", "/").strip("/")
+            r["full"] = "/".join(x for x in (r["full"], r["path"]) if x)
+        elif m["comp"] and stack:
+            stack[-1]["component"] = m["c"]
+    return out
+
+
+def route_matches(pattern: str, url: str) -> bool:
+    """`pets/:id/visits/add` reaches `pets/11/visits/add`. A parameter takes one segment; a
+    `**` takes the rest; the catalogue's URL is compared without its origin, query or hash."""
+    path = re.sub(r"^https?://[^/]+", "", url).split("?", 1)[0].split("#", 1)[0].strip("/")
+    rx = "/".join("[^/]+" if seg.startswith(":") else ".*" if seg == "**" else re.escape(seg)
+                  for seg in pattern.strip("/").split("/") if seg)
+    return re.fullmatch(rx, path) is not None
+
+
+def _component_ts(rel: str) -> str | None:
+    """The `.component.ts` behind any file of an Angular component; None for a spec or
+    for a file that is not a component's."""
+    m = re.match(r"(.*\.component)\.(ts|html|scss|css|less)$", rel)
+    if not m or rel.endswith(".spec.ts"):
+        return None
+    return m.group(1) + ".ts"
+
+
+def unlisted_screens(changed: list[str], catalogue: dict, sources: list[str],
+                     root: Path = Path(".")) -> list[dict]:
+    """The changed, routed components no catalogue screen reaches.
+
+    `changed` is the diff's file list; a changed component that owns a route is checked
+    directly, and one that does not (a child like `<app-visit-list>`) is followed one hop
+    to the routed components whose templates embed its selector. Anything further — a
+    pipe, a service, a shared stylesheet — is left to the DOM diff, which sees it on
+    whichever catalogue screen renders it. The result is what the audit prints in red."""
+    roots = [root / s for s in sources] or [root]
+    routes: list[tuple[str, str]] = []
+    for r in roots:
+        for f in r.rglob("*.ts"):
+            if f.name.endswith(".spec.ts") or "node_modules" in f.parts:
+                continue
+            try:
+                text = f.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if re.search(r"\bRouter(Module\.for(Root|Child)|Config)\b|:\s*Routes\b", text):
+                routes += angular_routes(text)
+    by_class = {}
+    for pattern, cls in routes:
+        by_class.setdefault(cls, []).append(pattern)
+
+    changed_ts = sorted({t for t in map(_component_ts, changed) if t})
+    candidates: dict[str, str | None] = {}          # class -> via selector, or None
+    templates = None
+    for ts in changed_ts:
+        f = root / ts
+        if not f.is_file():
+            continue
+        text = f.read_text(encoding="utf-8", errors="replace")
+        cls = re.search(r"export\s+class\s+(\w+)", text)
+        if not cls:
+            continue
+        if cls.group(1) in by_class:
+            candidates.setdefault(cls.group(1), None)
+            continue
+        sel = re.search(r"selector\s*:\s*['\"]([^'\"]+)['\"]", text)
+        if not sel:
+            continue
+        if templates is None:
+            templates = [h for r in roots for h in r.rglob("*.component.html")
+                         if "node_modules" not in h.parts]
+        for h in templates:
+            if f"<{sel.group(1)}" not in h.read_text(encoding="utf-8", errors="replace"):
+                continue
+            host = h.parent / (h.name[: -len(".html")] + ".ts")
+            if not host.is_file():
+                continue
+            hc = re.search(r"export\s+class\s+(\w+)",
+                           host.read_text(encoding="utf-8", errors="replace"))
+            if hc and hc.group(1) in by_class:
+                candidates.setdefault(hc.group(1), f"<{sel.group(1)}>")
+
+    urls = list((catalogue or {}).values())
+    out = []
+    for cls, via in candidates.items():
+        for pattern in by_class[cls]:
+            if pattern in ("", "**") or any(route_matches(pattern, u) for u in urls):
+                continue
+            out.append({"component": cls, "route": pattern, **({"via": via} if via else {})})
+    return out
+
+
+def _dsaudit(ctx: Ctx):
+    c = ctx.step_cfg("dsaudit")
+    catalogue = c.get("screens") or {}
+    screens = " ".join(f'--screen "{k}={v}"' for k, v in catalogue.items())
+    sources = " ".join(f"--source {s}" for s in (c.get("source") or []))
+    if not (c.get("base-new") and c.get("base-old") and screens):
+        raise LookupError("dsaudit needs base-new, base-old and at least one screen")
+    branch = sh("git rev-parse --abbrev-ref HEAD", ctx, capture=True).stdout.strip() or "HEAD"
+    changed = sh(f"git diff --name-only {merge_base(ctx)} HEAD -- "
+                 + " ".join(f"'{s}'" for s in (c.get("source") or [])),
+                 ctx, capture=True, check=False).stdout.split()
+    unlisted = unlisted_screens(changed, catalogue, c.get("source") or [])
+    for u in unlisted:
+        ctx.notes.append(f"UNLISTED SCREEN — {u['component']} changed and renders "
+                         f"{u['route']}" + (f" (through {u['via']})" if u.get("via") else "")
+                         + ", which no steps.dsaudit.screens entry reaches: the audit never "
+                         "looked at it. Add the screen to human-review.json and re-run "
+                         "--only dsaudit; until then say so in the guide")
+    flags = " ".join(
+        f'--unlisted "{u["component"]}={u["route"]}' + (f'={u["via"]}' if u.get("via") else "") + '"'
+        for u in unlisted)
+    sh(f"{HERE}/ds-audit.py --base-new {c['base-new']} --base-old {c['base-old']} "
+       f'--label-new "{branch}" --label-old {c.get("label-old", "main")} {screens} {sources} '
+       f"{flags} --assets {ART} --asset-prefix assets --json {ART}/ds-audit.json "
+       f"-o {ART}/ds-audit.html", ctx)
+    sh(f"{HERE}/ds-audit.py --css > {ART}/ds-audit.css", ctx)
+
+
+def _dsaudit_prereq(ctx: Ctx):
+    """Configured, and both builds up. The audit compares two running apps screen by screen,
+    so a missing app is its missing binary: a precondition, checked before the stamp, with
+    the URL that did not answer and what it stands for in the reason — not a defect of the
+    run to be dug out of a Playwright traceback and a 400-character command line."""
+    c = ctx.step_cfg("dsaudit")
+    if not c:
+        return "dsaudit not configured"
+    if ctx.dry or not (c.get("base-new") and c.get("base-old")):
+        return True                    # the step itself names what is missing
+    down = [f"{url} ({what})" for url, what in ((c["base-new"], "this branch"),
+                                                (c["base-old"], c.get("label-old", "main")))
+            if not answers(url)]
+    if not down:
+        return True
+    return (f"no app answering at {' and '.join(down)} — the audit compares two running "
+            "builds; start both (human-review.json steps.dsaudit names them) and re-run "
+            "--only dsaudit")
+
+
+def _owners(ctx: Ctx):
+    sh(f"{HERE}/codeowners-check.py --base {ctx.base} --state", ctx, check=False)
+
+
+def _tests(ctx: Ctx):
+    sh(f"{HERE}/test-changes.py --base {ctx.base} --out {ART}/test-changes.json", ctx)
+
+
+def _traces(ctx: Ctx):
+    """The Playwright recordings of the run, copied next to the page that shows them.
+
+    No suite is run from here by default. The browser suite has already run — `city.tests`
+    runs it for the coverage colours — and running it a second time to record it would
+    double the longest step on the page in exchange for a second, differently-flaky
+    opinion about the same branch. What a project has to do instead is turn tracing ON in
+    that run (`--trace on`, or an env knob its config reads); `commands` is here for the
+    project that genuinely has no other run to attach to.
+    """
+    c = ctx.step_cfg("traces")
+    report = c.get("report")
+    if not report:
+        raise LookupError("traces.report not configured")
+    for cmd in c.get("commands") or []:
+        r = sh(cmd, ctx, check=False)
+        if r.returncode != 0:
+            ctx.notes.append(f"the traced suite did not pass ({cmd}); the recordings below "
+                             "are of that run, which is exactly when they are worth most")
+    project = f' --project-dir "{c["projectDir"]}"' if c.get("projectDir") else ""
+    cucumber = f' --cucumber "{c["cucumber"]}"' if c.get("cucumber") else ""
+    r = sh(f'{HERE}/playwright-traces.py --report "{report}" --out {ART} '
+           f"--json {ART}/traces.json --limit {c.get('limit', 12)}{project}{cucumber}",
+           ctx, check=False)
+    if r.returncode == 2:
+        raise LookupError(f"no Playwright HTML report at {report} — did the suite run?")
+    if r.returncode == 3:
+        raise LookupError("the suite ran with tracing off — nothing to step through. "
+                          "Record with `--trace on` to get this tab")
+    if r.returncode != 0:
+        raise RuntimeError(f"playwright-traces.py exit {r.returncode}")
+
+
+# name, tabs (None = feeds no tab), label, prerequisite, runner
+STEPS = [
+    ("diagrams",    "data,packages", "diagram deltas",            None,              _diagrams),
+    ("sequence",    "sequence",      "sequence diagrams from traces",
+     lambda c: bool(c.step_cfg("sequence").get("commands")) or "sequence.commands not configured",
+     _sequence),
+    ("city",        "city",          "Code City capture",
+     lambda c: have("google-chrome") or have("chromium") or True, _city),
+    ("video",       "behaviour",     "feature recording",         None,              _video),
+    ("complexity",  "complexity",    "entry-point complexity",
+     lambda c: bool(c.step_cfg("complexity")) or has_java()
+     or "no Java main sources here — nothing this step knows how to read entry points from",
+     _complexity),
+    ("api",         "api",           "REST contract diff",
+     lambda c: Path(c.cfg.get("spec", "openapi.yaml")).is_file()
+     or f"no spec at {c.cfg.get('spec', 'openapi.yaml')}", _api),
+    ("specchanges", "api",           "pb33f report",
+     lambda c: have("openapi-changes") or "openapi-changes not installed", _specchanges),
+    ("logging",     "logging",       "structural logging scan",
+     lambda c: have("ast-grep") or "ast-grep not installed", _logging),
+    ("dsaudit",     "dsaudit",       "design-system audit",      _dsaudit_prereq,   _dsaudit),
+    ("owners",      "owners",        "codeowners check",          None,              _owners),
+    ("tests",       "requirements",  "test change manifest",      None,              _tests),
+    # Last, and on the tab the manifest above already feeds: the recordings are read after
+    # the reader knows which tests moved, and they are only worth copying once the run
+    # they belong to is over.
+    ("traces",      "requirements",  "Playwright trace recordings",
+     lambda c: bool(c.step_cfg("traces").get("report")) or "traces.report not configured",
+     _traces),
+]
+
+
+def _prereq(spec, ctx: Ctx) -> str | None:
+    """None when the step may run, else the reason it may not.
+
+    Called *before* the ledger stamp, which is the whole point: a step gated on an optional
+    binary must never leave a record naming a tab the page will not contain.
+    """
+    if spec is None:
+        return None
+    got = spec(ctx)
+    return None if got is True else (got if isinstance(got, str) else "prerequisite not met")
+
+
+def run_step(name, tabs, label, prereq, fn, ctx: Ctx) -> dict:
+    reason = _prereq(prereq, ctx)
+    if reason:
+        print(f"  - {name}: skipped ({reason})")
+        return {"step": name, "tabs": tabs, "status": SKIPPED, "reason": reason}
+
+    handle = Path(f".human-review/.step-{name}")
+    idx = None
+    if tabs and not ctx.dry:
+        idx = subprocess.run([sys.executable, str(LEDGER), "start", tabs, "--label", label],
+                             text=True, capture_output=True).stdout.strip()
+        handle.parent.mkdir(parents=True, exist_ok=True)
+        handle.write_text(idx, encoding="utf-8")
+    print(f"  * {name} -> {tabs or '(no tab)'}")
+    before = len(ctx.notes)
+    try:
+        fn(ctx)
+        status, reason = RAN, None
+    except LookupError as e:           # a prerequisite only the step itself could see
+        status, reason = SKIPPED, str(e)
+        print(f"    skipped: {e}")
+    except Exception as e:             # noqa: BLE001 - one failing step must not end the run
+        status, reason = FAILED, str(e)
+        print(f"    FAILED: {e}", file=sys.stderr)
+    finally:
+        # Always closed, including on the failure path: an open record makes the page report
+        # a step that died when in fact nothing said to close it.
+        if idx:
+            subprocess.run([sys.executable, str(LEDGER), "end", idx], check=False)
+    return {"step": name, "tabs": tabs, "status": status, "reason": reason,
+            "notes": ctx.notes[before:]}
+
+
+def load_config(path: Path) -> dict:
+    if not path.is_file():
+        print(f"[run-steps] no {path} — every project-specific step will be skipped and "
+              f"named. Copy {HERE.parent}/human-review.example.json to start.",
+              file=sys.stderr)
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--config", default="human-review.json")
+    ap.add_argument("--base", help="base ref (default: config's, else origin/main)")
+    ap.add_argument("--only", help="comma-separated step names")
+    ap.add_argument("--skip", help="comma-separated step names")
+    ap.add_argument("--list", action="store_true", help="list the steps and stop")
+    ap.add_argument("--dry-run", action="store_true", help="echo the commands, run nothing")
+    ap.add_argument("--json", action="store_true", help="emit the status table as JSON")
+    args = ap.parse_args(argv)
+
+    if args.list:
+        for name, tabs, label, prereq, _fn in STEPS:
+            print(f"  {name:<12} {str(tabs or '-'):<15} {label}")
+        return 0
+
+    cfg = load_config(Path(args.config))
+    ctx = Ctx(args.base or cfg.get("base") or "origin/main", cfg, args.dry_run)
+    only = {s.strip() for s in args.only.split(",")} if args.only else None
+    skip = {s.strip() for s in args.skip.split(",")} if args.skip else set()
+
+    ART.mkdir(parents=True, exist_ok=True)
+    results = []
+    for name, tabs, label, prereq, fn in STEPS:
+        if (only and name not in only) or name in skip:
+            continue
+        results.append(run_step(name, tabs, label, prereq, fn, ctx))
+
+    status_path = Path(".human-review/.steps-status.json")
+    if not args.dry_run:
+        status_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
+
+    if args.json:
+        print(json.dumps(results, indent=2))
+    else:
+        print("\n  step         status   why / what to say")
+        for r in results:
+            print(f"  {r['step']:<12} {r['status']:<8} {r.get('reason') or ''}")
+            for n in r.get("notes") or []:
+                print(f"  {'':<12} note     {n}")
+        dropped = [r["tabs"] for r in results if r["status"] != RAN and r["tabs"]]
+        if dropped:
+            print(f"\n  tabs with no content, to be named under the strip: "
+                  f"{', '.join(sorted(set(dropped)))}")
+    return 1 if any(r["status"] == FAILED for r in results) else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

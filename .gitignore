@@ -84,3 +84,7 @@ dist/
 *.old
 *.backup
 .idea/
+
+# human-review skill: local Python 3.13 venv + python3 shim (not part of upstream)
+claude/skills/human-review/.venv/
+claude/skills/human-review/.shims/

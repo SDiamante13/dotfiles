@@ -1,0 +1,284 @@
+---
+name: human-review
+description: Assemble .human-review/review.html — a tabbed reviewer's guide for a change set — from review passes that have ALREADY run in this conversation (/code-review, /simplify, or your own), plus diagram deltas, a Code City shot, a feature video, the endpoint-complexity increment, the REST contract diff and deep-linked snippets. Explicit invocation only — user types /human-review.
+disable-model-invocation: true
+---
+
+# /human-review — assemble a review.html for a human
+
+**This skill does not review the code. It writes up a review that already happened.**
+
+The passes that find things — `/code-review`, `/simplify`, a security pass, your own
+adversarial multi-agent review — are the human's to run, when *they* think they are done.
+This skill harvests what they produced, runs the deterministic evidence-gatherers around it,
+and assembles one page. Almost all of that is scripts; your job is the judgement and the
+prose. Do **not** commit or push.
+
+Resolve the skill's own directory once — a plugin install, an env override, a project
+symlink and a gitignored CI clone are all real layouts:
+
+```sh
+for candidate in "${CLAUDE_PLUGIN_ROOT:-/nonexistent}/skills/human-review" \
+    "${HUMAN_REVIEW_HOME:-/nonexistent}" \
+    "$(readlink -f .claude/skills/human-review 2>/dev/null)" ".claude/skills/human-review" \
+    "$HOME/.claude/skills/human-review"; do
+  [ -x "$candidate/scripts/run-steps.py" ] && { SKILL="$candidate"; break; }
+done
+[ -n "${SKILL:-}" ] || { echo "cannot locate the human-review skill"; exit 1; }
+```
+
+Run everything from the repository root. Project-specific commands live in
+`human-review.json` there, not in this file — `human-review.example.json` is the template.
+
+## Step 1 — What review already ran? (do this before anything destructive)
+
+```sh
+${SKILL}/scripts/review-passes.py --require --extract .human-review/passes
+```
+
+**Exit 3 means nothing has been reviewed, and you stop here.** Do not run `/code-review` or
+`/simplify` yourself to fill the gap. Tell the human, in your own words:
+
+> I can't write up a review that hasn't happened. I don't see `/code-review`, `/simplify` or
+> any other review pass in this conversation. Run the ones you want — `/code-review`,
+> `/simplify`, your own adversarial pass, in any combination — and call `/human-review`
+> again. **Or say the word and I'll run them for you now.**
+
+Then wait. If they say yes, run the passes they name, in separate turns, and start again at
+Step 1 — the page is built from a transcript, so the passes have to be *in* it.
+
+Otherwise read the files it extracted into `.human-review/passes/`. Those are your findings.
+Each carries the pass it came from; that becomes the item's `"source"`, and it is the only
+honest way to fill that field — provenance exists only where the pass actually ran.
+
+⚠️ **Never re-run a pass that already ran.** Two runs over the same diff word and rank their
+findings differently, so a second invocation does not confirm the first — it produces a
+*different* review at full price, and whichever ran last wins. The findings on this page are
+the ones the human watched happen.
+
+## Step 2 — Resolve the change set, then gate and wipe
+
+From `$ARGUMENTS`: **empty** → uncommitted work, `BASE=HEAD`. **A ref / range / SHA** →
+`BASE=<the older ref>`. **A PR** (`#123`, a github URL) → `gh pr checkout <n>`, and
+`BASE=$(gh pr view <n> --json baseRefName -q .baseRefName)`. Default `origin/main`. Print a
+one-line scope banner; an empty change set is "Nothing to review." and stop.
+
+```sh
+${SKILL}/scripts/preflight.py --base "$BASE"
+```
+
+It pushes, waits for CI **on the pushed commit**, and only then wipes `assets/`, resets the
+ledger and writes the run's start markers. Exit 1 means the branch is not proven and nothing
+was destroyed — report which workflow failed and stop. Whatever it prints on its last line
+about the gate goes in the guide verbatim; *"no build proved this"* must never read as a pass.
+
+If `.human-review/review.html` already exists, ask what changed first — see *Iterating*.
+
+## Step 3 — Produce the evidence
+
+```sh
+${SKILL}/scripts/run-steps.py --base "$BASE"
+```
+
+One command runs every deterministic producer — diagram deltas, sequence diagrams, Code
+City, the feature film, complexity, the REST contract and its two second opinions, the
+logging scan, the design-system audit, code owners, the test manifest, the Playwright
+recordings — each gated on its own prerequisite, each ledger-wrapped, none of them able to
+skip its `end`.
+
+Read the status table it prints. Three things in it are yours:
+
+- **`skipped`** — a missing optional binary, an unconfigured step, or a stack that is not
+  up (the design-system audit needs *both* builds served, `base-new` and `base-old`, and
+  skips naming the URL that did not answer). Its tab is dropped and named under the strip.
+  That is honest; do not work around it. **Unless another step feeds
+  the same tab** — `tests` and `traces` both feed Tests — in which case the tab stays and
+  only that step's half of it is missing: say *that*, not that the tab was dropped.
+- **`failed`** — say so in the guide. A failed producer is a fact about the run.
+- **`note`** — things only the run knows: the measured Code City count to put under the
+  image, an amber `PARTIAL LIST` seal that is *correct*, a suite that could not start, and
+  above all **video exit 3 — filmed, and the feature did not hold.** Lead the whole review
+  with that one.
+- **`UNLISTED SCREEN`** (a `dsaudit` note) — the branch changed a routed component that no
+  entry in `steps.dsaudit.screens` reaches, so the design-system audit never looked at
+  the one screen the change was about. That is a hole in the evidence, not a finding to
+  narrate around: add the screen to `human-review.json` (the list is the app's whole
+  catalogue; only the screens whose DOM changed are drawn) and re-run `--only dsaudit`
+  before writing the guide. The page prints the same warning in red at the top of UX.
+
+## Step 4 — Write the judgement
+
+This is the only step that is yours, and it is why a model is here at all.
+
+```sh
+${SKILL}/scripts/steps-ledger.py start guide --label "assemble content.json and build the page" \
+  > .human-review/.step-guide
+```
+
+Split every harvested finding in two, and say out loud which pile each landed in:
+
+- **Non-disputable → fix it now.** One obvious right answer, no behaviour change, no product
+  call: a duplicated helper, a test that passes vacuously, a shared persistence context
+  hiding a missing `save()`, an uninitialised model field, a positional selector, a dead
+  import. Fix, then re-run the affected tests. These become **Auto-fixed**.
+- **Disputable → hand it to the human.** Anything that changes an API contract, a migration
+  already applied somewhere, a data-integrity trade-off, a performance/correctness tension,
+  or where two reasonable engineers would pick differently. These become **Requires human review**,
+  most critical first.
+
+Never argue a finding away silently. If you skip one, it goes in the list with a reason.
+
+### The third pile — what the agent that wrote the code assumed
+
+Both piles above are found by reading the diff. This one cannot be. Where the coding agent
+guessed at an intent, took one of two readings of a requirement, or left something *for
+now*, that is knowable only from the side that made the call — and it exists in exactly one
+place, the transcript of the conversation that wrote the code. It is the only thing on this
+page no pass, script or reviewer can derive, and the reason it is worth the trouble.
+
+```sh
+${SKILL}/scripts/authoring-sessions.py --base "$BASE"
+```
+
+Its exit code says who can be asked, and there is no fourth answer:
+
+- **0 — mode A. This conversation wrote the code.** Read back over your own working turns
+  and name the calls you made without being told to. Not the ones you asked about and got
+  an answer to — the ones you settled yourself and moved on.
+- **4 — mode B. An earlier conversation wrote it.** `--paths` prints the transcripts, best
+  author first. Fork a subagent per transcript and have it read the file **verbatim, end to
+  end**: hedges are the first thing a summary loses, and a summary of a summary contains
+  none. Ask it for the decisions, not the story — *"list every point where the agent chose
+  between two readings, guessed at intent, deferred something, or said it was unsure; quote
+  the turn and name the file and line the decision landed on; return nothing you cannot
+  anchor."*
+- **5 — mode C. Nothing on disk wrote these files.** Somebody else's PR, or transcripts long
+  since swept. Declare the block with `"mode": "C"` and no items, and the page says the
+  conversation could not be asked — which is a different fact from it having had nothing to
+  say, and the reader must be able to tell the two apart.
+
+Three rules make the difference between a recollection and a plausible sentence about one:
+
+- **Anchor every one of them.** A `snippets` entry (or `refs`/`diffs`) pointing at the line
+  the decision landed on. Asked at the end of a long session what it was unsure about, a
+  model will write fluent, believable prose whether or not it ever hesitated; the anchor is
+  what a reader checks in five seconds. The build drops an unanchored one and says so.
+- **Name the reading you did not take**, in `alternative`. That is what lets the human
+  recognise their own intent without opening anything.
+- **Do not resolve them yourself.** An assumption is not a finding to be triaged into the
+  fix-it pile: the whole point is that the answer is not in the code. Leave every one of
+  them open, however small.
+- **Declare the block even when the pile is empty**, with its mode. The lede then counts it
+  at zero — `0 coder assumptions to check`, or `coder could not be asked` in mode C — and that
+  zero is a result the reader came for: it says the authoring conversation *was* asked. A
+  page that simply omits the pile is indistinguishable from one whose coder guessed at
+  nothing, so the build warns when no tab declares the block.
+
+Keep them to decisions with a consequence — a business rule guessed at, a contract invented,
+an edge case handled quietly, a `TODO` in all but name. Not the naming of a local variable.
+
+**The writing rule: show the code, do not narrate it.** A finding is not a story about a
+defect, it is the defect, quoted.
+
+- **Two or three sentences of prose, hard ceiling.** `title` says what is wrong; `body` says
+  what breaks and under which input; `why` says what the human has to decide. Past that, the
+  reviewer is reading your reasoning instead of their code.
+- **Then the code, and most of the item is code.** Prefer several short captioned snippets
+  over one long one; a caption names the *one thing* in the lines (`"the null branch that
+  never runs"`), not the block.
+- **An applied fix shows its diff.** A fix described in a sentence with no diff is a claim
+  the reader has to take on trust; the build warns when it finds one.
+- **Never retype code** — `extract-snippet.py path:from-to` cuts it verbatim at build time.
+- **Never type a number the page computes** (the diffstat, the cost tab and its label, the
+  auto-fixed count, the test balance, the Code City count, tab costs). A hand-typed number goes stale
+  with nothing noticing — `unit tests · 125 green (20 new)` was true until somebody wrote
+  the next test, and `lines +1198 / −863` sat on a page for six days matching no range in
+  the repository at all. `files` and `lines` come from `{"auto": "diffstat"}`, which
+  measures the change set and leaves generated files out of it.
+- **Never say a test's state yourself.** Name the test under the requirement it pins;
+  `test-changes.py` reads the code for whether it is new, edited, deleted, commented out
+  or sitting under an `@Disabled`. It is the one thing on the page you would have had to
+  check by hand, and the one a reviewer is least able to check behind you.
+- **Never name a specific artefact's absence.** *"`add-visit.genseq.puml` does not exist"*
+  stopped being true while it was being written. Describe the **case**; let the renderer say
+  which instances hit it.
+- **Never write a paragraph the reader can see.** *"Twelve items came back. They are one
+  list: the nine that need your judgement first, then the three I applied, greyed out and
+  numbered straight on."* — every clause of that is on screen underneath it. The reader is
+  an experienced developer who came for the finding, not for a description of the list the
+  finding is in. Say only what looking cannot tell them, in a line, and let the page do the
+  rest. Where the counts are the whole content, they are computed and you write nothing.
+- **A tooltip is a few words.** It is read standing up, in one glance, with a hand on the
+  mouse. Numbers the face could not fit, or where a click goes — then stop. Rationale is
+  not tooltip material even when it is true: it goes in the code comment beside the thing,
+  where whoever needs it is already reading.
+
+Write `.human-review/content.json` against **`reference/content-schema.md`** — every shape,
+every block type, the tab vocabulary, and everything the renderer already enforces so you do
+not restate it.
+
+Then commit whatever was already in the working tree, and **leave your own fixes
+uncommitted**: their whole value is that `git diff` shows exactly what an agent touched. Do
+not comment your decisions into the code — that belongs in **Requires human review**.
+
+## Step 5 — Close, check, build, serve
+
+In this order, and only this order:
+
+```sh
+${SKILL}/scripts/steps-ledger.py end "$(cat .human-review/.step-guide)"
+${SKILL}/scripts/steps-ledger.py check          # exits non-zero on a renamed tab
+${SKILL}/scripts/build-review-html.py .human-review/content.json --out .human-review/review.html
+URL=$(${SKILL}/scripts/serve-review.py .human-review)
+```
+
+`end` before `check`, so the guide record is closed when the check reads it. `check` before
+the build, so a `DRIFT:` line is still actionable — once the page is written, a renamed tab
+is a column of blanks nobody can tell from a step never instrumented. The build before the
+serve for a second reason now: it writes `.human-review/.actions.json` beside the page, and
+that file is the only thing that lets the served copy *run* the commands its buttons
+describe — the environment, the drive-to-cue, the diagram rerun. A page read off disk, or
+out of the zip, has no manifest next to it and copies them to the clipboard as it always
+did.
+
+**Never `open review.html`** — that hands it to whatever the OS thinks owns `.html`, on
+another desktop. With `$TERM_PROGRAM = vscode` and
+[victor-vsc](https://github.com/victorrentea/victor-vsc)'s bridge, `open-in-browser.py "$URL"`
+opens it beside the code (it matches by workspace **folder, not focus**). Otherwise print the
+URL to ⌘-click.
+
+**Print `$URL` as the last line of the run.** Then make sure the app runs from *this*
+checkout, open the screen the change affects, and start `/relay` so they can dictate tweaks.
+
+## Iterating on a review that already exists
+
+Most invocations after the first are not reviews — the page is on disk and what is wanted is
+a change to the *page*. **Has the code changed since the page was built?** New commits, a
+force-push, a finding fixed → re-review, start at Step 1. Only the report changed →
+iteration, and an iteration runs almost nothing:
+
+1. Edit the keys in `content.json` the request names, and nothing else.
+2. Re-run only the producers that read files you touched: `run-steps.py --only <step>`.
+3. Rebuild. The server is sticky, so print the same URL again.
+
+**Do not re-run Step 1's passes, do not `steps-ledger.py reset`, do not rewrite `.started`,
+do not wipe `assets/`, and do not open ledger records for the iteration's own edits.** They
+belong to the run they timed. In a *new session* the cost cannot be recomputed and will not
+say so, so pin the build to the session that did the work:
+
+```sh
+CLAUDE_CODE_SESSION_ID=$(cat .human-review/.session) \
+  ${SKILL}/scripts/build-review-html.py .human-review/content.json --out .human-review/review.html
+```
+
+If that id is gone, publish no number rather than a measured-looking one: delete
+`.human-review/.steps.json`. With no session to ask, the cost tab reports what it still
+can — what the conversation that wrote the code spent — and says in words why the run's own
+half is missing. If neither half is measurable the tab drops itself: a pill reading `$0` is
+a claim that this change was free, which is not what an absence means.
+
+## Wrap-up
+
+`.human-review/` is a throwaway artifact — remind the human to delete it rather than commit
+it (`serve-review.py --stop` first). Print the path and the URL, and list what you fixed vs
+what you left for them. Do not commit or push.
