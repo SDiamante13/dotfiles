@@ -55,6 +55,8 @@ claude/gh-pr-status-cache.json
 claude/uploads/
 claude/remote-settings.json
 claude/han/
+claude/skills/synced/
+claude/state/
 .serena/
 
 # Skill eval workspaces (generated artifacts)
