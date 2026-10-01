@@ -91,3 +91,16 @@ h3. Scenario 2 - {name}
 ```
 
 Use blank lines between sections for separation. Do NOT use `----` horizontal rules — Jira mangles them into heading tags.
+
+## Where code identifiers go
+
+Class names, endpoints, flag keys and table names never appear in Why or in a scenario. When the
+team needs them, put them in an `Implementation notes` section after the AC, and mark every one as
+code — never bare prose.
+
+The Atlassian MCP runs text through a lossy Markdown→wiki converter that corrupts identifiers even
+inside backticks: `_` becomes italics (`ship_unique_number` → `ship*unique*number`), `+` and
+`<…>` vanish, and URLs with `_` break. So when a description carries identifiers, skip
+`jira_update_issue` and `PUT /rest/api/3/issue/{key}` with an ADF `description`: a `code` mark on
+each inline identifier, a `codeBlock` node for anything multi-line. ADF is stored literally. Re-read
+the issue afterwards and check the identifiers survived.
